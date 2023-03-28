@@ -28,7 +28,7 @@ public class SpringChatClientApplication implements CommandLineRunner {
         try {
             var username = args[0];
             var client = new Client(username);
-            client.connect("ws://localhost:8080/chat");
+            client.connect();
             client.subscribe("/receive/" + username);
             var scanner = new Scanner(System.in);
             String input;
