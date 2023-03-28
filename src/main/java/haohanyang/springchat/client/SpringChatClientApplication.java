@@ -29,7 +29,7 @@ public class SpringChatClientApplication implements CommandLineRunner {
             var username = args[0];
             var client = new Client(username);
             client.connect();
-            client.subscribe("/receive/" + username);
+            client.subscribe("/receive/user/" + username);
             var scanner = new Scanner(System.in);
             String input;
             while (true) {
@@ -40,7 +40,7 @@ public class SpringChatClientApplication implements CommandLineRunner {
                 }
                 System.out.println("To who?");
                 var receiver = scanner.nextLine();
-                client.send("/send/" + username + "/" + receiver, input);
+                client.send("/send/user", input);
             }
         } catch (Exception e) {
             e.printStackTrace();
