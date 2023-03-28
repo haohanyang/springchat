@@ -26,7 +26,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable().authorizeHttpRequests((requests) ->
-                requests.requestMatchers("/register","/login", "/chat/**").permitAll()
+                requests.requestMatchers("/register", "/login", "/chat/**", "/send").permitAll()
                         .anyRequest().authenticated()
         );
 
