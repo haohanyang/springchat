@@ -106,8 +106,8 @@ public class Client {
 
     private boolean connect(String url) {
         try {
-            var httpHeader = new HttpHeaders();
-            var handshakeHeaders = new WebSocketHttpHeaders(httpHeader);
+            var httpHeaders = new HttpHeaders();
+            var handshakeHeaders = new WebSocketHttpHeaders(httpHeaders);
             var connectionHeaders = new StompHeaders();
             connectionHeaders.add("Authorization", "Bearer " + token);
             var sessionFuture = stompClient.connectAsync(url, handshakeHeaders, connectionHeaders, new SessionHandler());
@@ -135,8 +135,8 @@ public class Client {
         session.subscribe(header, new MessageHandler());
     }
 
-    // Subscribe to group messages
-    public void subscribe(String groupId) {
+    // Subscribe to group messages through websocket
+    public void subscribeStomp(String groupId) {
         if (session == null || token == null) {
             logger.error("User hasn't logged in");
             return;
@@ -145,6 +145,33 @@ public class Client {
         header.add("Authorization", "Bearer " + token);
         header.setDestination("/receive/group/" + groupId);
         session.subscribe(header, new MessageHandler());
+    }
+
+    // Subscribe to group messages through http put
+    public boolean subscribePut(String groupId) {
+        if (session == null || token == null) {
+            logger.error("User hasn't logged in");
+            return false;
+        }
+        try {
+            var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/send"))
+                    .header("Content-Type", "text/plain;charset=utf-8")
+                    .header("Authorization", "Bearer " + token)
+                    .PUT(HttpRequest.BodyPublishers.ofString(groupId))
+                    .build();
+
+            HttpResponse<String> response =
+                    HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                logger.info("ok");
+                return true;
+            } else {
+                logger.info("fail");
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return false;
     }
 
 

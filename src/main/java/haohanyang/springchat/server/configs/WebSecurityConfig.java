@@ -34,10 +34,10 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // This doesn't apply to websocket messages
         http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable().authorizeHttpRequests((requests) ->
                 requests.requestMatchers("/register", "/login", "/verify", "/chat/**").permitAll()
-                        .requestMatchers("/auth").authenticated()
                         .anyRequest().authenticated()
         );
         http.addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -52,7 +52,6 @@ public class WebSecurityConfig {
     @Bean
     public AuthorizationManager<Message<?>> messageAuthorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
         messages.anyMessage().permitAll();
-        //messages.simpDestMatchers("/").permitAll();
         return messages.build();
     }
 

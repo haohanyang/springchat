@@ -3,6 +3,9 @@ package haohanyang.springchat.client.cmd;
 import haohanyang.springchat.common.MessageType;
 import jakarta.annotation.Nullable;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,7 +14,10 @@ public class CommandlineParser {
 
     private static Pattern registerPattern = Pattern.compile("register\s+([a-zA-Z0-9-_]+)\s+(\\S+)$");
     private static Pattern sendPattern = Pattern.compile("^send\s+([ug])/([a-zA-Z0-9-_]+)\s+'(.+)'$");
+    private static Pattern joinPattern = Pattern.compile("^join\s+g/([a-zA-Z0-9-_]+)$");
+
     private static Pattern exitPattern = Pattern.compile("^([qQ]|exit|quit)$");
+
 
     @Nullable
     public static Command parse(String commandString) {
@@ -39,6 +45,11 @@ public class CommandlineParser {
             var username = matcher.group(1);
             var password = matcher.group(2);
             return new LoginCommand(username, password);
+        }
+
+        matcher = joinPattern.matcher(commandString);
+        if (matcher.matches()) {
+            return new JoinGroupCommand(matcher.group(1));
         }
 
         matcher = sendPattern.matcher(commandString);

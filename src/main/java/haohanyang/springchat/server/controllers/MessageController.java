@@ -68,7 +68,7 @@ public class MessageController {
             } else {
                 simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, m);
             }
-            return ResponseEntity.ok().body("success");
+            return ResponseEntity.ok().body("ok");
         } catch (InterruptedException e) {
             logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
