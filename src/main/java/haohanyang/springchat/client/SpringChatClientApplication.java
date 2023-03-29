@@ -44,7 +44,7 @@ public class SpringChatClientApplication implements CommandLineRunner {
             }
 
             if (command instanceof SendCommand sendCommand) {
-                if (!client.send(sendCommand.messageType(), sendCommand.receiver(), sendCommand.content())) {
+                if (!client.sendPost(sendCommand.messageType(), sendCommand.receiver(), sendCommand.content())) {
                     System.err.println("Message delivery fails");
                 }
                 continue;

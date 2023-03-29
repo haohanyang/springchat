@@ -40,7 +40,8 @@ public class Client {
     @Nullable
     private String token = null;
     Logger logger = LoggerFactory.getLogger(Client.class);
-    private final static String server_url = "ws://localhost:8080/chat";
+    private final static String SERVER_URL = "ws://localhost:8080/chat";
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public Client() {
         // Set up stomp client
@@ -56,8 +57,6 @@ public class Client {
     public boolean login(String username, String password) {
         try {
             var form = new AuthenticationRequest(username, password);
-
-            ObjectMapper mapper = new ObjectMapper();
             var json = mapper.writeValueAsBytes(form);
 
             var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/login"))
@@ -71,7 +70,7 @@ public class Client {
                 this.token = authenticationResponse.token();
                 this.username = username;
                 logger.info("Login succeeds, try to connect to the websocket server");
-                return connect(server_url);
+                return connect(SERVER_URL);
             } else {
                 logger.error("Login fails");
             }
@@ -126,7 +125,7 @@ public class Client {
 
 
     // Send message through websocket
-    public boolean send(MessageType messageType, String receiver, String message) {
+    public boolean sendStomp(MessageType messageType, String receiver, String content) {
         if (session == null || token == null) {
             logger.error("User hasn't logged in");
             return false;
@@ -138,7 +137,38 @@ public class Client {
         } else {
             header.setDestination("/send/group");
         }
-        session.send(header, new Message(MessageType.USER, message, username, receiver, ""));
+        session.send(header, new Message(MessageType.USER, content, username, receiver, ""));
         return true;
+    }
+
+    // Send message through http post
+    public boolean sendPost(MessageType messageType, String receiver, String content) {
+
+        if (session == null || token == null) {
+            logger.error("User hasn't logged in");
+            return false;
+        }
+
+        try {
+            var message = new Message(messageType, content, username, receiver, "");
+            var json = mapper.writeValueAsBytes(message);
+
+            var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/send"))
+                    .header("Content-Type", "application/json;charset=utf-8")
+                    .header("Authorization", "Bearer " + token)
+                    .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(json)))
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                logger.info("Sending message to " + receiver + " succeeds");
+                return true;
+            } else {
+                logger.info("Sending message to " + receiver + " fails");
+            }
+        } catch (Exception e) {
+            logger.info("Sending message to " + receiver + " fails:" + e.getMessage());
+        }
+        return false;
     }
 }

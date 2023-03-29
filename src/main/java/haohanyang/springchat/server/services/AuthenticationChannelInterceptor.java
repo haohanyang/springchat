@@ -1,6 +1,5 @@
 package haohanyang.springchat.server.services;
 
-import haohanyang.springchat.common.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
