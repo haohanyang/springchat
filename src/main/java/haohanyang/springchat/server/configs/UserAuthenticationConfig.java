@@ -18,16 +18,25 @@ import org.springframework.security.provisioning.UserDetailsManager;
 public class UserAuthenticationConfig {
     @Bean
     public UserDetailsManager userDetailsManager() {
-        var initUsername = "user";
-        var initPassword = "password";
+        var initUsername1 = "user1";
+        var initPassword1 = "user1";
+
+        var initUsername2 = "user2";
+        var initPassword2 = "user2";
         var encoder = new BCryptPasswordEncoder();
 
-        UserDetails user =
-                User.withUsername(initUsername)
-                        .password(encoder.encode(initPassword))
+        var user1 =
+                User.withUsername(initUsername1)
+                        .password(encoder.encode(initPassword1))
                         .roles("USER")
                         .build();
-        return new InMemoryUserDetailsManager(user);
+
+        var user2 =
+                User.withUsername(initUsername2)
+                        .password(encoder.encode(initPassword2))
+                        .roles("USER")
+                        .build();
+        return new InMemoryUserDetailsManager(user1, user2);
     }
 
     @Bean

@@ -54,6 +54,30 @@ public class Client {
     }
 
     @Nullable
+    public boolean register(String username, String password) {
+        try {
+            var form = new AuthenticationRequest(username, password);
+            var json = mapper.writeValueAsBytes(form);
+
+            var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/register"))
+                    .header("Content-Type", "application/json;charset=utf-8")
+                    .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(json)))
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                logger.info("Registration succeeds");
+                return true;
+            } else {
+                logger.error("Registration fails");
+            }
+        } catch (Exception e) {
+            logger.error("Registration fails:" + e.getMessage());
+        }
+        return false;
+    }
+
+    @Nullable
     public boolean login(String username, String password) {
         try {
             var form = new AuthenticationRequest(username, password);
@@ -88,7 +112,7 @@ public class Client {
             connectionHeaders.add("Authorization", "Bearer " + token);
             var sessionFuture = stompClient.connectAsync(url, handshakeHeaders, connectionHeaders, new SessionHandler());
             this.session = sessionFuture.get();
-            logger.info("Connection succeeds, subscribe to own channel");
+            logger.info("Connection succeeds, try to subscribe to own channel");
             subscribe();
             return true;
         } catch (Exception e) {

@@ -8,6 +8,8 @@ import java.util.regex.Pattern;
 
 public class CommandlineParser {
     private static Pattern loginPattern = Pattern.compile("login\s+([a-zA-Z0-9-_]+)\s+(\\S+)$");
+
+    private static Pattern registerPattern = Pattern.compile("register\s+([a-zA-Z0-9-_]+)\s+(\\S+)$");
     private static Pattern sendPattern = Pattern.compile("^send\s+([ug])/([a-zA-Z0-9-_]+)\s+'(.+)'$");
     private static Pattern exitPattern = Pattern.compile("^([qQ]|exit|quit)$");
 
@@ -23,6 +25,13 @@ public class CommandlineParser {
         matcher = exitPattern.matcher(commandString);
         if (matcher.matches()) {
             return new ExitCommand();
+        }
+
+        matcher = registerPattern.matcher(commandString);
+        if (matcher.matches()) {
+            var username = matcher.group(1);
+            var password = matcher.group(2);
+            return new RegistrationCommand(username, password);
         }
 
         matcher = loginPattern.matcher(commandString);

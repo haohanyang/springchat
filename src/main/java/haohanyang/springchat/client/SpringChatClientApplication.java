@@ -1,9 +1,6 @@
 package haohanyang.springchat.client;
 
-import haohanyang.springchat.client.cmd.CommandlineParser;
-import haohanyang.springchat.client.cmd.ExitCommand;
-import haohanyang.springchat.client.cmd.LoginCommand;
-import haohanyang.springchat.client.cmd.SendCommand;
+import haohanyang.springchat.client.cmd.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,8 +27,20 @@ public class SpringChatClientApplication implements CommandLineRunner {
             var commandString = scanner.nextLine();
             var command = CommandlineParser.parse(commandString);
 
+            if (command == null) {
+                System.err.println("Invalid input");
+                continue;
+            }
             if (command instanceof ExitCommand) {
                 break;
+            }
+
+            if (command instanceof RegistrationCommand registrationCommand) {
+                if (!client.register(registrationCommand.username(), registrationCommand.password())) {
+                    System.err.println("Registration fails");
+                } else {
+                    System.out.println("Registration succeeds");
+                }
             }
 
             if (command instanceof LoginCommand loginCommand) {
@@ -40,17 +49,13 @@ public class SpringChatClientApplication implements CommandLineRunner {
                 } else {
                     System.out.println("Login succeeds");
                 }
-                continue;
             }
 
             if (command instanceof SendCommand sendCommand) {
                 if (!client.sendPost(sendCommand.messageType(), sendCommand.receiver(), sendCommand.content())) {
                     System.err.println("Message delivery fails");
                 }
-                continue;
             }
-
-            System.err.println("Invalid input");
         }
         exit(0);
     }
