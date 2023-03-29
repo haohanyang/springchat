@@ -36,14 +36,13 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable().authorizeHttpRequests((requests) ->
-                requests.requestMatchers("/register", "/login", "/verify").permitAll()
+                requests.requestMatchers("/register", "/login", "/verify", "/chat/**").permitAll()
                         .requestMatchers("/auth").authenticated()
                         .anyRequest().authenticated()
         );
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
-
 
     @Bean
     public MessageMatcherDelegatingAuthorizationManager.Builder builder() {
@@ -52,7 +51,8 @@ public class WebSecurityConfig {
 
     @Bean
     public AuthorizationManager<Message<?>> messageAuthorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
-        messages.simpDestMatchers("/").authenticated();
+        messages.anyMessage().permitAll();
+        //messages.simpDestMatchers("/").permitAll();
         return messages.build();
     }
 

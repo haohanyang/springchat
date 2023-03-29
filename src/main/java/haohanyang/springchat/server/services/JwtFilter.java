@@ -10,6 +10,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.UserDetailsManager;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,6 +23,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final UserDetailsManager userDetailsManager;
     private final AuthenticationTokenService authenticationTokenService;
+
+    // This filter doesn't filter websocket requests
+    private static final RequestMatcher urlMatcher = new AntPathRequestMatcher("/chat/**");
 
     @Autowired
     public JwtFilter(UserDetailsManager userDetailsManager, AuthenticationTokenService authenticationTokenService) {
@@ -33,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         var authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            var token = authHeader.substring(7);
+            var token = authHeader.split(" ")[1].trim();
             if (!token.isBlank()) {
                 String username = authenticationTokenService.verifyToken(token);
                 if (username == null) {
@@ -50,7 +56,12 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
         }
-
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        RequestMatcher matcher = new NegatedRequestMatcher(urlMatcher);
+        return !matcher.matches(request);
     }
 }

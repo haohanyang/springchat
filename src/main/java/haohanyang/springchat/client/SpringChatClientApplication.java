@@ -1,5 +1,9 @@
 package haohanyang.springchat.client;
 
+import haohanyang.springchat.client.cmd.CommandlineParser;
+import haohanyang.springchat.client.cmd.ExitCommand;
+import haohanyang.springchat.client.cmd.LoginCommand;
+import haohanyang.springchat.client.cmd.SendCommand;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,31 +22,35 @@ public class SpringChatClientApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (args.length < 1) {
-            System.err.println("Please input username");
-            System.exit(1);
-        }
+        System.out.println("springchat");
+        var client = new Client();
 
-        try {
-            var username = args[0];
-            var client = new Client(username);
-            client.connect();
-            client.subscribe("/receive/user/" + username);
+        while (true) {
             var scanner = new Scanner(System.in);
-            String input;
-            while (true) {
-                System.out.println("Input message:");
-                input = scanner.nextLine();
-                if (input.equals("q")) {
-                    break;
-                }
-                System.out.println("To who?");
-                var receiver = scanner.nextLine();
-                client.send("/send/user", input);
+            var commandString = scanner.nextLine();
+            var command = CommandlineParser.parse(commandString);
+
+            if (command instanceof ExitCommand) {
+                break;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            exit(1);
+
+            if (command instanceof LoginCommand loginCommand) {
+                if (!client.login(loginCommand.username(), loginCommand.password())) {
+                    System.err.println("Login fails");
+                } else {
+                    System.out.println("Login succeeds");
+                }
+                continue;
+            }
+
+            if (command instanceof SendCommand sendCommand) {
+                if (!client.send(sendCommand.messageType(), sendCommand.receiver(), sendCommand.content())) {
+                    System.err.println("Message delivery fails");
+                }
+                continue;
+            }
+
+            System.err.println("Invalid input");
         }
         exit(0);
     }

@@ -26,7 +26,7 @@ import java.util.List;
 @Service
 public class AuthenticationService {
 
-    Logger logger = LoggerFactory.getLogger(MessageController.class);
+    Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
     private final UserDetailsManager userDetailsManager;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;

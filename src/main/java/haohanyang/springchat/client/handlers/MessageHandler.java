@@ -1,6 +1,7 @@
 package haohanyang.springchat.client.handlers;
 
 import haohanyang.springchat.common.Message;
+import haohanyang.springchat.common.MessageType;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 
@@ -15,6 +16,11 @@ public class MessageHandler implements StompFrameHandler {
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
         var message = (Message) payload;
-        System.out.println(message.sender() + ":" + message.content());
+        if (message.messageType() == MessageType.USER) {
+            System.out.println("u/" + message.sender() + ":" + message.content());
+        } else {
+            System.out.println("g/" + message.receiver() + " " + message.sender() + ":" + message.content());
+        }
+
     }
 }

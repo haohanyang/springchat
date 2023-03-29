@@ -6,15 +6,19 @@ import haohanyang.springchat.server.services.AuthenticationService;
 
 import haohanyang.springchat.server.services.AuthenticationServiceResult;
 import haohanyang.springchat.server.services.AuthenticationTokenService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 
 @RestController
 public class AuthenticationController {
 
+    Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
     private final AuthenticationService authenticationService;
     private final AuthenticationTokenService authenticationTokenService;
 
@@ -28,31 +32,17 @@ public class AuthenticationController {
     public ResponseEntity<String> register(@RequestBody AuthenticationRequest form) {
         var result = authenticationService.register(form.username(), form.password());
         if (result == AuthenticationServiceResult.USER_EXISTS) {
-            return new ResponseEntity<>("User " + form.username() + " already exists", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User " + form.username() + " already exists");
         }
         return new ResponseEntity<>("Registration succeeds", HttpStatus.CREATED);
     }
 
-
     @GetMapping("/verify")
-    public String verifyToken(@RequestParam(name = "username", defaultValue = "") String username,
-                              @RequestParam(name = "token", defaultValue = "") String token) {
-        if (token.isBlank()) {
-            return "Invalid token";
+    public ResponseEntity<String> verifyToken(@RequestParam(name = "token", defaultValue = "") String token) {
+        if (token.isBlank() || authenticationTokenService.verifyToken(token) == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid");
         }
-        var result = authenticationTokenService.verifyToken(token);
-        if (result == null) {
-            return "Invalid token";
-        }
-
-        if (username.isEmpty()) {
-            return "Valid token";
-        }
-        if (result.equals(username)) {
-            return "Valid token and username";
-        } else {
-            return "Invalid token, but not from user" + username;
-        }
+        return ResponseEntity.ok("Valid token");
     }
 
     @PostMapping("/login")

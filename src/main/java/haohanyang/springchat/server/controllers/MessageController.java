@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 @Controller
 public class MessageController {
 
+    Logger logger = LoggerFactory.getLogger(MessageController.class);
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
@@ -27,7 +28,6 @@ public class MessageController {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    Logger logger = LoggerFactory.getLogger(MessageController.class);
 
     @MessageMapping("/user")
     public void userMessage(@Payload Message message) throws Exception {
