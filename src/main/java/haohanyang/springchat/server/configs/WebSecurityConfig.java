@@ -14,8 +14,8 @@ import org.springframework.security.messaging.access.intercept.MessageMatcherDel
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -26,7 +26,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable().authorizeHttpRequests((requests) ->
-                requests.requestMatchers("/register", "/login", "/chat/**", "/send").permitAll()
+                requests.requestMatchers("/register", "/login", "/chat/**", "/send", "/verify").permitAll()
                         .anyRequest().authenticated()
         );
 
@@ -34,21 +34,24 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user =
-                User.withDefaultPasswordEncoder()
-                        .username("user")
-                        .password("password")
-                        .roles("USER")
-                        .build();
-
-        return new InMemoryUserDetailsManager(user);
-    }
-
-    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    @Bean
+    public UserDetailsManager userDetailsManager() {
+        var initUsername = "user";
+        var initPassword = "password";
+        var encoder = new BCryptPasswordEncoder();
+
+        UserDetails user =
+                User.withUsername(initUsername)
+                        .password(encoder.encode(initPassword))
+                        .roles("USER")
+                        .build();
+        return new InMemoryUserDetailsManager(user);
+    }
+
 
     @Bean
     public AuthorizationManager<Message<?>> messageAuthorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {

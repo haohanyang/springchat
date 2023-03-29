@@ -4,14 +4,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.context.annotation.Profile;
 
 import java.util.Scanner;
 
 import static java.lang.System.exit;
 
 @SpringBootApplication(exclude = SecurityAutoConfiguration.class)
-@Profile("client")
 public class SpringChatClientApplication implements CommandLineRunner {
 
     public static void main(String[] args) {
