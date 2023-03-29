@@ -6,6 +6,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -13,6 +14,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
@@ -28,9 +31,8 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final List<GrantedAuthority> grantedAuthorityList;
-    private static final long EXPIRE_DURATION = 24 * 60 * 60 * 1000; // 24 hour
-    private String SECRET_KEY = "Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=";
 
+    @Autowired
     public AuthenticationService(UserDetailsManager userDetailsManager, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
         this.userDetailsManager = userDetailsManager;
         this.authenticationManager = authenticationManager;
@@ -38,29 +40,6 @@ public class AuthenticationService {
         this.grantedAuthorityList = List.of(new SimpleGrantedAuthority("USER"));
     }
 
-    public String generateToken(String username) {
-        var token = Jwts.builder().setSubject(username)
-                .setIssuer("springchat")
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRE_DURATION))
-                .signWith(SignatureAlgorithm.HS256,
-                        Decoders.BASE64.decode(SECRET_KEY))
-                .compact();
-        return token;
-    }
-
-    public AuthenticationServiceResult verifyToken(String token) {
-        try {
-            var parser = Jwts.parserBuilder().setSigningKey(Decoders.BASE64URL.decode(SECRET_KEY)).build();
-            parser.parseClaimsJws(token);
-            logger.info("Verification of token " + token + " succeeds");
-
-            return AuthenticationServiceResult.SUCCESS;
-        } catch (Exception e) {
-            logger.info("Verification of token " + token + " fails:" + e.getMessage());
-            return AuthenticationServiceResult.AUTH_FAILS;
-        }
-    }
 
     public AuthenticationServiceResult register(String username, String password) {
         if (userDetailsManager.userExists(username)) {

@@ -1,5 +1,7 @@
 package haohanyang.springchat.server.configs;
 
+import haohanyang.springchat.server.services.JwtFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -17,55 +19,41 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
+    private JwtFilter jwtFilter;
+
+    @Autowired
+    public WebSecurityConfig(JwtFilter jwtFilter) {
+        this.jwtFilter = jwtFilter;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable().authorizeHttpRequests((requests) ->
-                requests.requestMatchers("/register", "/login", "/chat/**", "/send", "/verify").permitAll()
+                requests.requestMatchers("/register", "/login", "/verify").permitAll()
+                        .requestMatchers("/auth").authenticated()
                         .anyRequest().authenticated()
         );
-
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
-    public UserDetailsManager userDetailsManager() {
-        var initUsername = "user";
-        var initPassword = "password";
-        var encoder = new BCryptPasswordEncoder();
-
-        UserDetails user =
-                User.withUsername(initUsername)
-                        .password(encoder.encode(initPassword))
-                        .roles("USER")
-                        .build();
-        return new InMemoryUserDetailsManager(user);
+    public MessageMatcherDelegatingAuthorizationManager.Builder builder() {
+        return new MessageMatcherDelegatingAuthorizationManager.Builder();
     }
-
 
     @Bean
     public AuthorizationManager<Message<?>> messageAuthorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
         messages.simpDestMatchers("/").authenticated();
         return messages.build();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    public @Bean MessageMatcherDelegatingAuthorizationManager.Builder builder() {
-        return new MessageMatcherDelegatingAuthorizationManager.Builder();
     }
 
 }
