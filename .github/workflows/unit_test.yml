@@ -30,5 +30,7 @@ jobs:
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-      - name: Build with Gradle
-        run: bash ./build.sh
+      - name: Build Server
+        run: ./gradlew -b build_server.gradle build -x test
+      - name: Build Client
+        run: ./gradlew -b build_client.gradle build -x test
