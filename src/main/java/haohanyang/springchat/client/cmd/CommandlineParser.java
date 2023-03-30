@@ -1,11 +1,8 @@
 package haohanyang.springchat.client.cmd;
 
-import haohanyang.springchat.common.MessageType;
+import haohanyang.springchat.common.ChatMessageType;
 import jakarta.annotation.Nullable;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,11 +51,11 @@ public class CommandlineParser {
 
         matcher = sendPattern.matcher(commandString);
         if (matcher.matches()) {
-            MessageType type;
+            ChatMessageType type;
             if (matcher.group(1).equals("u")) {
-                type = MessageType.USER;
+                type = ChatMessageType.USER;
             } else {
-                type = MessageType.GROUP;
+                type = ChatMessageType.GROUP;
             }
             var receiver = matcher.group(2);
             var content = matcher.group(3);

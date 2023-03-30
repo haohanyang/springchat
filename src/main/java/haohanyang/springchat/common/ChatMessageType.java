@@ -1,6 +1,6 @@
 package haohanyang.springchat.common;
 
-public enum MessageType {
+public enum ChatMessageType {
     USER,
     GROUP
 }

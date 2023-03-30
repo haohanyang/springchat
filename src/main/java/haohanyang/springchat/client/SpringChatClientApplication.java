@@ -52,13 +52,13 @@ public class SpringChatClientApplication implements CommandLineRunner {
             }
 
             if (command instanceof SendCommand sendCommand) {
-                if (!client.sendPost(sendCommand.messageType(), sendCommand.receiver(), sendCommand.content())) {
+                if (!client.sendPost(sendCommand.chatMessageType(), sendCommand.receiver(), sendCommand.content())) {
                     System.err.println("Message delivery fails");
                 }
             }
 
             if (command instanceof JoinGroupCommand joinGroupCommand) {
-                if (!client.subscribePut(joinGroupCommand.groupId())) {
+                if (!client.subscribe(joinGroupCommand.groupId())) {
                     System.err.println("Error");
                 }
             }

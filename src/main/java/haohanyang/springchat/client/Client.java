@@ -3,8 +3,8 @@ package haohanyang.springchat.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import haohanyang.springchat.common.AuthenticationRequest;
 import haohanyang.springchat.common.AuthenticationResponse;
-import haohanyang.springchat.common.Message;
-import haohanyang.springchat.common.MessageType;
+import haohanyang.springchat.common.ChatMessage;
+import haohanyang.springchat.common.ChatMessageType;
 import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,14 +106,12 @@ public class Client {
 
     private boolean connect(String url) {
         try {
-            var httpHeaders = new HttpHeaders();
-            var handshakeHeaders = new WebSocketHttpHeaders(httpHeaders);
+            var handshakeHeaders = new WebSocketHttpHeaders();
             var connectionHeaders = new StompHeaders();
             connectionHeaders.add("Authorization", "Bearer " + token);
-            var sessionFuture = stompClient.connectAsync(url, handshakeHeaders, connectionHeaders, new SessionHandler());
+            var sessionFuture = stompClient.connectAsync(url, handshakeHeaders, connectionHeaders,
+                    new SessionHandler(username, token));
             this.session = sessionFuture.get();
-            logger.info("Connection succeeds, try to subscribe to own channel");
-            subscribe();
             return true;
         } catch (Exception e) {
             logger.error("Connection to " + url + " fails");
@@ -123,77 +121,39 @@ public class Client {
         }
     }
 
-    // A subscribe to his own channel
-    private void subscribe() {
-        if (session == null || token == null) {
-            logger.error("User hasn't logged in");
-            return;
-        }
-        var header = new StompHeaders();
-        header.add("Authorization", "Bearer " + token);
-        header.setDestination("/receive/user/" + username);
-        session.subscribe(header, new MessageHandler());
-    }
-
     // Subscribe to group messages through websocket
-    public void subscribeStomp(String groupId) {
+    public boolean subscribe(String groupId) {
         if (session == null || token == null) {
             logger.error("User hasn't logged in");
-            return;
+            return false;
         }
         var header = new StompHeaders();
         header.add("Authorization", "Bearer " + token);
         header.setDestination("/receive/group/" + groupId);
         session.subscribe(header, new MessageHandler());
-    }
-
-    // Subscribe to group messages through http put
-    public boolean subscribePut(String groupId) {
-        if (session == null || token == null) {
-            logger.error("User hasn't logged in");
-            return false;
-        }
-        try {
-            var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/send"))
-                    .header("Content-Type", "text/plain;charset=utf-8")
-                    .header("Authorization", "Bearer " + token)
-                    .PUT(HttpRequest.BodyPublishers.ofString(groupId))
-                    .build();
-
-            HttpResponse<String> response =
-                    HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                logger.info("ok");
-                return true;
-            } else {
-                logger.info("fail");
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-        return false;
+        return true;
     }
 
 
     // Send message through websocket
-    public boolean sendStomp(MessageType messageType, String receiver, String content) {
+    public boolean sendStomp(ChatMessageType chatMessageType, String receiver, String content) {
         if (session == null || token == null) {
             logger.error("User hasn't logged in");
             return false;
         }
         var header = new StompHeaders();
         header.add("Authorization", "Bearer " + token);
-        if (messageType == MessageType.USER) {
+        if (chatMessageType == ChatMessageType.USER) {
             header.setDestination("/send/user");
         } else {
             header.setDestination("/send/group");
         }
-        session.send(header, new Message(MessageType.USER, content, username, receiver, ""));
+        session.send(header, new ChatMessage(ChatMessageType.USER, content, username, receiver, ""));
         return true;
     }
 
     // Send message through http post
-    public boolean sendPost(MessageType messageType, String receiver, String content) {
+    public boolean sendPost(ChatMessageType chatMessageType, String receiver, String content) {
 
         if (session == null || token == null) {
             logger.error("User hasn't logged in");
@@ -201,7 +161,7 @@ public class Client {
         }
 
         try {
-            var message = new Message(messageType, content, username, receiver, "");
+            var message = new ChatMessage(chatMessageType, content, username, receiver, "");
             var json = mapper.writeValueAsBytes(message);
 
             var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/send"))

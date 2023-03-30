@@ -13,11 +13,24 @@ import java.lang.reflect.Type;
 
 public class SessionHandler implements StompSessionHandler {
 
+    private final String token;
+    private final String username;
     Logger logger = LoggerFactory.getLogger(SessionHandler.class);
+
+    public SessionHandler(String username, String token) {
+        this.username = username;
+        this.token = token;
+    }
 
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
         logger.info("Websocket connected, connection id:" + session.getSessionId());
+        logger.info("Try to subscribe");
+
+        var headers = new StompHeaders();
+        headers.add("Authorization", "Bearer " + token);
+        headers.setDestination("/receive/user/" + username);
+        session.subscribe(headers, new MessageHandler());
     }
 
     @Override

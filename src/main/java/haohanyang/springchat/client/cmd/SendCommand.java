@@ -1,7 +1,6 @@
 package haohanyang.springchat.client.cmd;
 
-import haohanyang.springchat.common.Message;
-import haohanyang.springchat.common.MessageType;
+import haohanyang.springchat.common.ChatMessageType;
 
-public record SendCommand(MessageType messageType, String receiver, String content) implements Command {
+public record SendCommand(ChatMessageType chatMessageType, String receiver, String content) implements Command {
 }

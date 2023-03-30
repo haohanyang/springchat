@@ -1,8 +1,8 @@
 package haohanyang.springchat.server.controllers;
 
 
-import haohanyang.springchat.common.Message;
-import haohanyang.springchat.common.MessageType;
+import haohanyang.springchat.common.ChatMessage;
+import haohanyang.springchat.common.ChatMessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,40 +30,40 @@ public class MessageController {
 
 
     @MessageMapping("/user")
-    public void userMessage(@Payload Message message) throws Exception {
+    public void userMessage(@Payload ChatMessage chatMessage) throws Exception {
         Thread.sleep(500);
-        var content = message.content();
-        var sender = message.sender();
-        var receiver = message.receiver();
+        var content = chatMessage.content();
+        var sender = chatMessage.sender();
+        var receiver = chatMessage.receiver();
         logger.info(sender + " -> " + "user/" + receiver + ":" + content);
-        var m = new Message(message.messageType(), content, sender,
+        var m = new ChatMessage(chatMessage.chatMessageType(), content, sender,
                 receiver, LocalDateTime.now().toString());
         simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, m);
     }
 
     @MessageMapping("/group")
-    public void groupMessage(@Payload Message message) throws Exception {
+    public void groupMessage(@Payload ChatMessage chatMessage) throws Exception {
         Thread.sleep(500);
-        var content = message.content();
-        var sender = message.sender();
-        var receiver = message.receiver();
+        var content = chatMessage.content();
+        var sender = chatMessage.sender();
+        var receiver = chatMessage.receiver();
         logger.info(sender + " -> " + "group/" + receiver + ":" + content);
-        var m = new Message(message.messageType(), content, sender,
+        var m = new ChatMessage(chatMessage.chatMessageType(), content, sender,
                 receiver, LocalDateTime.now().toString());
         simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, m);
     }
 
     @PostMapping("/send")
-    public ResponseEntity<String> sendMessage(@RequestBody Message message) {
+    public ResponseEntity<String> sendMessage(@RequestBody ChatMessage chatMessage) {
         try {
             Thread.sleep(500);
-            var content = message.content();
-            var sender = message.sender();
-            var receiver = message.receiver();
+            var content = chatMessage.content();
+            var sender = chatMessage.sender();
+            var receiver = chatMessage.receiver();
             logger.info(sender + " -> " + "user/" + receiver + ":" + content);
-            var m = new Message(message.messageType(), content, sender,
+            var m = new ChatMessage(chatMessage.chatMessageType(), content, sender,
                     receiver, LocalDateTime.now().toString());
-            if (message.messageType() == MessageType.USER) {
+            if (chatMessage.chatMessageType() == ChatMessageType.USER) {
                 simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, m);
             } else {
                 simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, m);
