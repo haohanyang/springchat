@@ -1,6 +1,8 @@
 package haohanyang.springchat.server.controllers;
 
-import haohanyang.springchat.common.RpcResponseType;
+import haohanyang.springchat.common.ChatNotification;
+import haohanyang.springchat.common.ChatNotificationType;
+
 import haohanyang.springchat.server.services.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,17 +21,16 @@ public class UserGroupController {
         this.userGroupService = userGroupService;
     }
 
-    @PutMapping("/subscribe")
+    @PutMapping("/join")
     public ResponseEntity<String> joinGroup(@RequestBody String groupId) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         var username = (String) authentication.getPrincipal();
         var result = userGroupService.addMember(username, groupId);
-        if (result.rpcResponseType() == RpcResponseType.SUCCESS) {
+        if (result.type() == ChatNotificationType.SUCCESS) {
             return ResponseEntity.ok("ok");
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.message());
         }
     }
-
 
 }

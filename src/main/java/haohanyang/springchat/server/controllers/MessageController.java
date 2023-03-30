@@ -73,13 +73,17 @@ public class MessageController {
             var content = chatMessage.content();
             var sender = chatMessage.sender();
             var receiver = chatMessage.receiver();
-            logger.info(sender + " -> " + "user/" + receiver + ":" + content);
-            var m = new ChatMessage(chatMessage.chatMessageType(), content, sender,
+            if (chatMessage.chatMessageType() == ChatMessageType.USER) {
+                logger.info("u/{} -> u/{} : {}", sender, receiver, content);
+            } else {
+                logger.info("u/{} -> g/{} : {}", sender, receiver, content);
+            }
+            var message = new ChatMessage(chatMessage.chatMessageType(), content, sender,
                     receiver, LocalDateTime.now().toString());
             if (chatMessage.chatMessageType() == ChatMessageType.USER) {
-                simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, m);
+                simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, message);
             } else {
-                simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, m);
+                simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, message);
             }
             return ResponseEntity.ok().body("ok");
         } catch (InterruptedException e) {

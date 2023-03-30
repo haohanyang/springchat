@@ -1,11 +1,10 @@
 package haohanyang.springchat.server.services;
 
 
-import haohanyang.springchat.common.RpcResponse;
-import haohanyang.springchat.common.RpcResponseType;
+import haohanyang.springchat.common.ChatNotification;
+import haohanyang.springchat.common.ChatNotificationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -104,81 +103,81 @@ public class UserGroupService {
         }
     }
 
-    public RpcResponse addMember(String username, String groupId) {
-        RpcResponse rpcResponse = null;
+    public ChatNotification addMember(String username, String groupId) {
+        ChatNotification notification = null;
         try {
             mutex.lock();
             var members = groupMembers.get(groupId);
             if (members != null) {
                 if (!members.add(username)) {
                     logger.warn("Add u/{} to g/{}:{}", username, groupId, "User is already in the group");
-                    rpcResponse = new RpcResponse(RpcResponseType.WARNING, "You are already in g/" + groupId);
+                    notification = new ChatNotification(ChatNotificationType.WARNING, "You are already in g/" + groupId);
                 }
             } else {
                 // Error:Group doesn't exist
                 logger.error("Add u/{} to g/{}:{}", username, groupId, "Group doesn't exist");
-                return new RpcResponse(RpcResponseType.ERROR, "g/" + groupId + " doesn't exist");
+                return new ChatNotification(ChatNotificationType.ERROR, "g/" + groupId + " doesn't exist");
             }
 
             var groups = userGroups.get(username);
             if (groups != null) {
                 if (!groups.add(groupId)) {
                     logger.warn("Add u/{} to g/{}:{}", username, groupId, "User is already in the group");
-                    rpcResponse = new RpcResponse(RpcResponseType.WARNING, "You are already in g/" + groupId);
+                    notification = new ChatNotification(ChatNotificationType.WARNING, "You are already in g/" + groupId);
                 }
             } else {
                 // Error:User doesn't exist
                 logger.error("Add u/{} to g/{}:{}", username, groupId, "User doesn't exist");
-                return new RpcResponse(RpcResponseType.ERROR, "User doesn't exist");
+                return new ChatNotification(ChatNotificationType.ERROR, "User doesn't exist");
             }
         } catch (Exception e) {
             logger.error("Add u/{} to g/{}:{}", username, groupId, e.getMessage());
-            return new RpcResponse(RpcResponseType.ERROR, e.getMessage());
+            return new ChatNotification(ChatNotificationType.ERROR, e.getMessage());
         } finally {
             mutex.unlock();
         }
-        if (rpcResponse == null) {
-            return new RpcResponse(RpcResponseType.SUCCESS, "ok");
+        if (notification == null) {
+            return new ChatNotification(ChatNotificationType.SUCCESS, "ok");
         }
-        return rpcResponse;
+        return notification;
     }
 
-    public RpcResponse removeMember(String username, String groupId) {
-        RpcResponse rpcResponse = null;
+    public ChatNotification removeMember(String username, String groupId) {
+        ChatNotification notification = null;
         try {
             mutex.lock();
             var members = groupMembers.get(groupId);
             if (members != null) {
                 if (!members.remove(username)) {
                     logger.warn("Remove u/{} from g/{}:{}", username, groupId, "User is not in the group");
-                    rpcResponse = new RpcResponse(RpcResponseType.WARNING, "You are not in g/" + groupId);
+                    notification = new ChatNotification(ChatNotificationType.WARNING, "You are not in g/" + groupId);
                 }
             } else {
                 // Error: Group doesn't exist
                 logger.error("Remove u/{} from g/{}:{}", username, groupId, "Group doesn't exist");
-                return new RpcResponse(RpcResponseType.ERROR, "g/" + groupId + " doesn't exist");
+                return new ChatNotification(ChatNotificationType.ERROR, "g/" + groupId + " doesn't exist");
             }
 
             var groups = userGroups.get(username);
             if (groups != null) {
                 if (!groups.remove(groupId)) {
                     logger.warn("Remove u/{} to g/{}:{}", username, groupId, "User is not in the group");
-                    rpcResponse = new RpcResponse(RpcResponseType.WARNING, "You are not in g/" + groupId);
+                    notification = new ChatNotification(ChatNotificationType.WARNING, "You are not in g/" + groupId);
                 }
             } else {
                 // Error: User doesn't exist
                 logger.error("Remove u/{} to g/{}:{}", username, groupId, "User doesn't exist");
-                return new RpcResponse(RpcResponseType.ERROR, "User doesn't exist");
+                return new ChatNotification(ChatNotificationType.ERROR, "User doesn't exist");
             }
         } catch (Exception e) {
             logger.error("Remove u/{} to g/{}:{}", username, groupId, e.getMessage());
-            return new RpcResponse(RpcResponseType.ERROR, e.getMessage());
+            return new ChatNotification(ChatNotificationType.ERROR, e.getMessage());
         } finally {
             mutex.unlock();
         }
-        if (rpcResponse == null) {
-            return new RpcResponse(RpcResponseType.SUCCESS, "ok");
+        if (notification == null) {
+            return new ChatNotification(ChatNotificationType.SUCCESS, "ok");
         }
-        return rpcResponse;
+        return notification;
     }
 }

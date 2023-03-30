@@ -58,7 +58,7 @@ public class SpringChatClientApplication implements CommandLineRunner {
             }
 
             if (command instanceof JoinGroupCommand joinGroupCommand) {
-                if (!client.subscribe(joinGroupCommand.groupId())) {
+                if (!client.join(joinGroupCommand.groupId())) {
                     System.err.println("Error");
                 }
             }

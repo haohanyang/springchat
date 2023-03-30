@@ -66,6 +66,7 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
                 if (matcher.matches()) {
                     var groupId = matcher.group(1);
                     if (!userGroupService.userInGroup(username, groupId)) {
+                        logger.error("{} fails:{}", accessor.getCommand(), "Invalid destination");
                         // Only group members can receive message
                         return null;
                     }

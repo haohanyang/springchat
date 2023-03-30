@@ -8,7 +8,6 @@ import haohanyang.springchat.common.ChatMessageType;
 import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -122,16 +121,36 @@ public class Client {
     }
 
     // Subscribe to group messages through websocket
-    public boolean subscribe(String groupId) {
+    public boolean join(String groupId) {
+
         if (session == null || token == null) {
             logger.error("User hasn't logged in");
             return false;
         }
-        var header = new StompHeaders();
-        header.add("Authorization", "Bearer " + token);
-        header.setDestination("/receive/group/" + groupId);
-        session.subscribe(header, new MessageHandler());
-        return true;
+        try {
+            var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/join"))
+                    .header("Content-Type", "text/plain;charset=utf-8")
+                    .header("Authorization", "Bearer " + token)
+                    .PUT(HttpRequest.BodyPublishers.ofString(groupId))
+                    .build();
+
+            HttpResponse<String> response =
+                    HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                var headers = new StompHeaders();
+                headers.add("Authorization", "Bearer " + token);
+                headers.setDestination("/receive/group/" + groupId);
+                session.subscribe(headers, new MessageHandler());
+                return true;
+
+            } else {
+                logger.info("fail");
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return false;
+
     }
 
 
