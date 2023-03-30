@@ -1,6 +1,5 @@
 package haohanyang.springchat.server.services;
 
-import haohanyang.springchat.server.controllers.MessageController;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;

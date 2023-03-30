@@ -36,6 +36,7 @@ public class UserAuthenticationConfig {
                         .password(encoder.encode(initPassword2))
                         .roles("USER")
                         .build();
+
         return new InMemoryUserDetailsManager(user1, user2);
     }
 

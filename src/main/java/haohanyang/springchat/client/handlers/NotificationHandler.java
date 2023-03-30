@@ -15,6 +15,6 @@ public class NotificationHandler implements StompFrameHandler {
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
         var notification = (ChatNotification) payload;
-        System.out.println("Info:" + notification.message());
+        System.out.println("info:" + notification.message());
     }
 }

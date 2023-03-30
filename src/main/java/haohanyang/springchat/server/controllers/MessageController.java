@@ -5,14 +5,17 @@ import haohanyang.springchat.common.ChatMessage;
 import haohanyang.springchat.common.ChatMessageType;
 import haohanyang.springchat.common.ChatNotification;
 import haohanyang.springchat.common.ChatNotificationType;
+import haohanyang.springchat.server.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,10 +29,12 @@ public class MessageController {
 
     Logger logger = LoggerFactory.getLogger(MessageController.class);
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final MessageService messageService;
 
     @Autowired
     public MessageController(SimpMessagingTemplate simpMessagingTemplate) {
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.messageService = new MessageService(simpMessagingTemplate);
     }
 
 
@@ -42,10 +47,8 @@ public class MessageController {
         logger.info(sender + " -> " + "user/" + receiver + ":" + content);
         var message = new ChatMessage(chatMessage.chatMessageType(), content, sender,
                 receiver, LocalDateTime.now().toString());
-        simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, message);
-
-        var notification = new ChatNotification(ChatNotificationType.SUCCESS, "Message sent");
-        simpMessagingTemplate.convertAndSend("/notify/user/" + sender, notification);
+        messageService.sendUserMessage(receiver, message);
+        //simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, message);
     }
 
     @MessageMapping("/group")
@@ -55,14 +58,16 @@ public class MessageController {
         var sender = chatMessage.sender();
         var receiver = chatMessage.receiver();
         logger.info(sender + " -> " + "group/" + receiver + ":" + content);
-        var m = new ChatMessage(chatMessage.chatMessageType(), content, sender,
+        var message = new ChatMessage(chatMessage.chatMessageType(), content, sender,
                 receiver, LocalDateTime.now().toString());
-        simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, m);
+        messageService.sendGroupMessage(receiver, message);
+        //simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, m);
     }
 
     @PostMapping("/notify")
     public String sendNotification(@RequestBody ChatNotification notification, @RequestParam String username) {
-        simpMessagingTemplate.convertAndSend("/receive/user/" + username, notification);
+        messageService.sendUserNotification(username, notification);
+        //simpMessagingTemplate.convertAndSend("/receive/user/" + username, notification);
         return "ok";
     }
 
@@ -81,14 +86,16 @@ public class MessageController {
             var message = new ChatMessage(chatMessage.chatMessageType(), content, sender,
                     receiver, LocalDateTime.now().toString());
             if (chatMessage.chatMessageType() == ChatMessageType.USER) {
-                simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, message);
+                messageService.sendUserMessage(receiver, message);
+                // simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, message);
             } else {
-                simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, message);
+                messageService.sendGroupMessage(receiver, message);
+                // simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, message);
             }
             return ResponseEntity.ok().body("ok");
         } catch (InterruptedException e) {
             logger.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(e.getMessage());
         }
     }
 

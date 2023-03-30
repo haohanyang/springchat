@@ -1,10 +1,9 @@
 package haohanyang.springchat.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import haohanyang.springchat.common.AuthenticationRequest;
-import haohanyang.springchat.common.AuthenticationResponse;
-import haohanyang.springchat.common.ChatMessage;
-import haohanyang.springchat.common.ChatMessageType;
+import haohanyang.springchat.client.cmd.*;
+import haohanyang.springchat.client.handlers.NotificationHandler;
+import haohanyang.springchat.common.*;
 import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +25,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 import haohanyang.springchat.client.handlers.MessageHandler;
 import haohanyang.springchat.client.handlers.SessionHandler;
@@ -42,6 +42,11 @@ public class Client {
     private final static String SERVER_URL = "ws://localhost:8080/chat";
     private final ObjectMapper mapper = new ObjectMapper();
 
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+
     public Client() {
         // Set up stomp client
         var webSocketTransport = new WebSocketTransport(new StandardWebSocketClient());
@@ -52,8 +57,7 @@ public class Client {
         this.stompClient.setMessageConverter(new MappingJackson2MessageConverter());
     }
 
-    @Nullable
-    public boolean register(String username, String password) {
+    private void register(String username, String password) {
         try {
             var form = new AuthenticationRequest(username, password);
             var json = mapper.writeValueAsBytes(form);
@@ -63,21 +67,21 @@ public class Client {
                     .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(json)))
                     .build();
 
-            HttpResponse<String> response = HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            var response = HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                logger.info("Registration succeeds");
-                return true;
+                logger.info("register({},{}) ok", username, password);
+                printSucceed("ok");
             } else {
-                logger.error("Registration fails");
+                logger.info("register({},{}) error:{}", username, password, response.body());
+                printError("error:" + response.body());
             }
         } catch (Exception e) {
-            logger.error("Registration fails:" + e.getMessage());
+            logger.info("register({},{}) error:{}", username, password, e.getMessage());
+            printError("error:" + e.getMessage());
         }
-        return false;
     }
 
-    @Nullable
-    public boolean login(String username, String password) {
+    private void login(String username, String password) {
         try {
             var form = new AuthenticationRequest(username, password);
             var json = mapper.writeValueAsBytes(form);
@@ -87,23 +91,24 @@ public class Client {
                     .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(json)))
                     .build();
 
-            HttpResponse<String> response = HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            var response = HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 var authenticationResponse = mapper.readValue(response.body(), AuthenticationResponse.class);
                 this.token = authenticationResponse.token();
                 this.username = username;
-                logger.info("Login succeeds, try to connect to the websocket server");
-                return connect(SERVER_URL);
+                logger.info("login({},{}) ok, try to connect to the websocket server", username, password);
+                connect(SERVER_URL);
             } else {
-                logger.error("Login fails");
+                logger.error("login({},{}) error:{}", username, password, response.body());
+                printError("error:" + response.body());
             }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("login({},{}) error:{}", username, password, e.getMessage());
+            printError("error:" + e.getMessage());
         }
-        return false;
     }
 
-    private boolean connect(String url) {
+    private void connect(String url) {
         try {
             var handshakeHeaders = new WebSocketHttpHeaders();
             var connectionHeaders = new StompHeaders();
@@ -111,21 +116,47 @@ public class Client {
             var sessionFuture = stompClient.connectAsync(url, handshakeHeaders, connectionHeaders,
                     new SessionHandler(username, token));
             this.session = sessionFuture.get();
-            return true;
+            printSucceed("ok");
         } catch (Exception e) {
-            logger.error("Connection to " + url + " fails");
+            logger.error("connect({}) error:{}", url, e.getMessage());
             this.session = null;
             this.username = null;
-            return false;
         }
     }
 
-    // Subscribe to group messages through websocket
-    public boolean join(String groupId) {
+    private void printResponse(ChatNotification notification) {
+        var message = notification.message();
+        switch (notification.type()) {
+            case WARNING -> printWarning("warning:" + message);
+            case ERROR -> printError("error:" + message);
+            default -> printSucceed("ok");
+        }
+    }
 
+    private StompHeaders getStompHeaders() {
+        var headers = new StompHeaders();
+        headers.add("Authorization", "Bearer " + token);
+        return headers;
+    }
+
+    private void printError(String message) {
+        System.err.println(message);
+    }
+
+    private void printWarning(String message) {
+        System.out.println(ANSI_YELLOW + message + ANSI_RESET);
+    }
+
+    private void printSucceed(String message) {
+        System.out.println(ANSI_GREEN + message + ANSI_RESET);
+    }
+
+    // Subscribe to group messages through websocket
+    private void join(String groupId) {
         if (session == null || token == null) {
-            logger.error("User hasn't logged in");
-            return false;
+            logger.error("join({}) error:{}", groupId, "User hasn't logged in");
+            printError("error:" + "You haven't logged in");
+            return;
         }
         try {
             var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/join"))
@@ -134,28 +165,31 @@ public class Client {
                     .PUT(HttpRequest.BodyPublishers.ofString(groupId))
                     .build();
 
-            HttpResponse<String> response =
+            var response =
                     HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            var notification = mapper.readValue(response.body(), ChatNotification.class);
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                var headers = new StompHeaders();
-                headers.add("Authorization", "Bearer " + token);
-                headers.setDestination("/receive/group/" + groupId);
-                session.subscribe(headers, new MessageHandler());
-                return true;
+                var receiveHeaders = getStompHeaders();
+                receiveHeaders.setDestination("/receive/group/" + groupId);
+                session.subscribe(receiveHeaders, new MessageHandler());
 
+                var notificationHeaders = getStompHeaders();
+                notificationHeaders.setDestination("/notify/group/" + groupId);
+                session.subscribe(notificationHeaders, new NotificationHandler());
+                printResponse(notification);
             } else {
-                logger.info("fail");
+                logger.error("join({}) error:{}", groupId, notification.message());
+                printResponse(notification);
             }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("join({}) error:{}", groupId, e.getMessage());
+            printError("error:" + e.getMessage());
         }
-        return false;
-
     }
 
 
     // Send message through websocket
-    public boolean sendStomp(ChatMessageType chatMessageType, String receiver, String content) {
+    private boolean sendStomp(ChatMessageType chatMessageType, String receiver, String content) {
         if (session == null || token == null) {
             logger.error("User hasn't logged in");
             return false;
@@ -172,15 +206,16 @@ public class Client {
     }
 
     // Send message through http post
-    public boolean sendPost(ChatMessageType chatMessageType, String receiver, String content) {
+    private void send(ChatMessageType chatMessageType, String receiver, String content) {
 
         if (session == null || token == null) {
-            logger.error("User hasn't logged in");
-            return false;
+            logger.error("send({},{},{}) error:{}", chatMessageType, receiver, content, "User hasn't logged in");
+            printError("error:" + "You haven't logged in");
+            return;
         }
 
+        var message = new ChatMessage(chatMessageType, content, username, receiver, "");
         try {
-            var message = new ChatMessage(chatMessageType, content, username, receiver, "");
             var json = mapper.writeValueAsBytes(message);
 
             var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/send"))
@@ -191,14 +226,48 @@ public class Client {
 
             HttpResponse<String> response = HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                logger.info("Sending message to " + receiver + " succeeds");
-                return true;
+                logger.info("send({},{},{}) ok", chatMessageType, receiver, content);
+                printSucceed("ok");
             } else {
-                logger.info("Sending message to " + receiver + " fails");
+                logger.error("send({},{},{}) error:{}", chatMessageType, receiver, content, response.body());
+                printError("error:" + response.body());
             }
         } catch (Exception e) {
-            logger.info("Sending message to " + receiver + " fails:" + e.getMessage());
+            logger.error("send({},{},{}) error:{}", chatMessageType, receiver, content, e.getMessage());
+            printError("error:" + e.getMessage());
         }
-        return false;
+
+    }
+
+    public void run() {
+        while (true) {
+            var scanner = new Scanner(System.in);
+            var commandString = scanner.nextLine();
+            var command = CommandlineParser.parse(commandString);
+
+            if (command == null) {
+                System.err.println("Invalid input");
+                continue;
+            }
+            if (command instanceof ExitCommand) {
+                break;
+            }
+
+            if (command instanceof RegistrationCommand registrationCommand) {
+                register(registrationCommand.username(), registrationCommand.password());
+            }
+
+            if (command instanceof LoginCommand loginCommand) {
+                login(loginCommand.username(), loginCommand.password());
+            }
+
+            if (command instanceof SendCommand sendCommand) {
+                send(sendCommand.chatMessageType(), sendCommand.receiver(), sendCommand.content());
+            }
+
+            if (command instanceof JoinGroupCommand joinGroupCommand) {
+                join(joinGroupCommand.groupId());
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ import haohanyang.springchat.common.ChatNotification;
 import haohanyang.springchat.common.ChatNotificationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -18,10 +19,12 @@ import java.util.concurrent.locks.ReentrantLock;
 public class UserGroupService {
 
     Logger logger = LoggerFactory.getLogger(UserGroupService.class);
+
     private final Map<String, Set<String>> userGroups;
     private final Map<String, Set<String>> groupMembers;
     private final Lock mutex = new ReentrantLock();
 
+    @Autowired
     public UserGroupService() {
         userGroups = new HashMap<>();
         groupMembers = new HashMap<>();
@@ -116,7 +119,8 @@ public class UserGroupService {
             } else {
                 // Error:Group doesn't exist
                 logger.error("Add u/{} to g/{}:{}", username, groupId, "Group doesn't exist");
-                return new ChatNotification(ChatNotificationType.ERROR, "g/" + groupId + " doesn't exist");
+                notification = new ChatNotification(ChatNotificationType.ERROR, "g/" + groupId + " doesn't exist");
+                return notification;
             }
 
             var groups = userGroups.get(username);
@@ -128,18 +132,21 @@ public class UserGroupService {
             } else {
                 // Error:User doesn't exist
                 logger.error("Add u/{} to g/{}:{}", username, groupId, "User doesn't exist");
-                return new ChatNotification(ChatNotificationType.ERROR, "User doesn't exist");
+                notification = new ChatNotification(ChatNotificationType.ERROR, "User doesn't exist");
+                return notification;
             }
         } catch (Exception e) {
             logger.error("Add u/{} to g/{}:{}", username, groupId, e.getMessage());
-            return new ChatNotification(ChatNotificationType.ERROR, e.getMessage());
+            notification = new ChatNotification(ChatNotificationType.ERROR, e.getMessage());
+            return notification;
         } finally {
             mutex.unlock();
         }
-        if (notification == null) {
-            return new ChatNotification(ChatNotificationType.SUCCESS, "ok");
+
+        if (notification != null) {
+            return notification;
         }
-        return notification;
+        return new ChatNotification(ChatNotificationType.SUCCESS, "u/" + username + " joined the group");
     }
 
     public ChatNotification removeMember(String username, String groupId) {
@@ -180,4 +187,5 @@ public class UserGroupService {
         }
         return notification;
     }
+
 }

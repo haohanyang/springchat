@@ -1,6 +1,5 @@
 package haohanyang.springchat.client.handlers;
 
-import haohanyang.springchat.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -25,7 +24,6 @@ public class SessionHandler implements StompSessionHandler {
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
         logger.info("Websocket connected, connection id:" + session.getSessionId());
-        logger.info("Try to subscribe");
 
         // Subscribe to receive messages
         var receiveHeaders = new StompHeaders();
@@ -38,6 +36,7 @@ public class SessionHandler implements StompSessionHandler {
         notificationHeaders.add("Authorization", "Bearer " + token);
         notificationHeaders.setDestination("/notify/user/" + username);
         session.subscribe(notificationHeaders, new NotificationHandler());
+        logger.info("sub to" + "/notify/user/" + username);
     }
 
     @Override

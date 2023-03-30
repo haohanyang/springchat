@@ -37,7 +37,7 @@ public class WebSecurityConfig {
         // This doesn't apply to websocket messages
         http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable().authorizeHttpRequests((requests) ->
-                requests.requestMatchers("/register", "/login", "/verify", "/chat/**").permitAll()
+                requests.requestMatchers("/register", "/login", "/verify", "/chat/**", "/notify").permitAll()
                         .anyRequest().authenticated()
         );
         http.addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
