@@ -27,10 +27,17 @@ public class SessionHandler implements StompSessionHandler {
         logger.info("Websocket connected, connection id:" + session.getSessionId());
         logger.info("Try to subscribe");
 
-        var headers = new StompHeaders();
-        headers.add("Authorization", "Bearer " + token);
-        headers.setDestination("/receive/user/" + username);
-        session.subscribe(headers, new MessageHandler());
+        // Subscribe to receive messages
+        var receiveHeaders = new StompHeaders();
+        receiveHeaders.add("Authorization", "Bearer " + token);
+        receiveHeaders.setDestination("/receive/user/" + username);
+        session.subscribe(receiveHeaders, new MessageHandler());
+
+        // Subscribe to receive notifications
+        var notificationHeaders = new StompHeaders();
+        notificationHeaders.add("Authorization", "Bearer " + token);
+        notificationHeaders.setDestination("/notify/user/" + username);
+        session.subscribe(notificationHeaders, new NotificationHandler());
     }
 
     @Override

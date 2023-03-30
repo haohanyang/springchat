@@ -3,6 +3,8 @@ package haohanyang.springchat.server.controllers;
 
 import haohanyang.springchat.common.ChatMessage;
 import haohanyang.springchat.common.ChatMessageType;
+import haohanyang.springchat.common.ChatNotification;
+import haohanyang.springchat.common.ChatNotificationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +16,12 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 
-@Controller
+@RestController
 public class MessageController {
 
     Logger logger = LoggerFactory.getLogger(MessageController.class);
@@ -36,9 +40,12 @@ public class MessageController {
         var sender = chatMessage.sender();
         var receiver = chatMessage.receiver();
         logger.info(sender + " -> " + "user/" + receiver + ":" + content);
-        var m = new ChatMessage(chatMessage.chatMessageType(), content, sender,
+        var message = new ChatMessage(chatMessage.chatMessageType(), content, sender,
                 receiver, LocalDateTime.now().toString());
-        simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, m);
+        simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, message);
+
+        var notification = new ChatNotification(ChatNotificationType.SUCCESS, "Message sent");
+        simpMessagingTemplate.convertAndSend("/notify/user/" + sender, notification);
     }
 
     @MessageMapping("/group")
@@ -51,6 +58,12 @@ public class MessageController {
         var m = new ChatMessage(chatMessage.chatMessageType(), content, sender,
                 receiver, LocalDateTime.now().toString());
         simpMessagingTemplate.convertAndSend("/receive/group/" + receiver, m);
+    }
+
+    @PostMapping("/notify")
+    public String sendNotification(@RequestBody ChatNotification notification, @RequestParam String username) {
+        simpMessagingTemplate.convertAndSend("/receive/user/" + username, notification);
+        return "ok";
     }
 
     @PostMapping("/send")
