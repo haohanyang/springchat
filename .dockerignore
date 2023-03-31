@@ -1,0 +1,8 @@
+.github/
+.gradle/
+.vscode/
+bin/
+build/
+server_build
+client_build
+static/
