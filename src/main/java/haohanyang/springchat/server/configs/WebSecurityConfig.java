@@ -38,11 +38,13 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // This doesn't apply to websocket messages
         http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.csrf().disable().authorizeHttpRequests((requests) ->
+        http.csrf().disable();
+        http.authorizeHttpRequests((requests) ->
                 requests.requestMatchers("/register", "/login", "/verify", "/chat/**", "/notify").permitAll()
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
                         .anyRequest().authenticated()
         );
+        http.headers().frameOptions().disable();
         http.addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

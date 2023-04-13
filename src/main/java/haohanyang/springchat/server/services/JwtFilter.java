@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,7 +24,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserDetailsManager userDetailsManager;
     private final AuthenticationTokenService authenticationTokenService;
 
-    // This filter doesn't filter websocket requests
+    // This filter doesn't filter websocket and h2 console requests
     private static final RequestMatcher urlMatcher = new AntPathRequestMatcher("/chat/**");
 
     @Autowired
@@ -61,6 +62,6 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         RequestMatcher matcher = new NegatedRequestMatcher(urlMatcher);
-        return !matcher.matches(request);
+        return !matcher.matches(request) && !PathRequest.toH2Console().matches(request);
     }
 }
