@@ -2,6 +2,7 @@ package haohanyang.springchat.server.configs;
 
 import haohanyang.springchat.server.services.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -27,6 +28,7 @@ public class WebSecurityConfig {
 
     private JwtFilter jwtFilter;
 
+
     @Autowired
     public WebSecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
@@ -38,6 +40,7 @@ public class WebSecurityConfig {
         http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable().authorizeHttpRequests((requests) ->
                 requests.requestMatchers("/register", "/login", "/verify", "/chat/**", "/notify").permitAll()
+                        .requestMatchers(PathRequest.toH2Console()).permitAll()
                         .anyRequest().authenticated()
         );
         http.addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
