@@ -28,13 +28,17 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // This doesn't apply to websocket messages
-        http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        // http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable();
-        http.authorizeHttpRequests((requests) ->
-                requests.requestMatchers("/", "/api/register", "/api/login", "/chat/**", "/api/notify").permitAll()
+        http.authorizeHttpRequests(requests ->
+                requests.requestMatchers("/", "/register", "/api/register", "/api/login", "/api/notify", "/api/send", "/chat/**").permitAll()
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
                         .anyRequest().authenticated()
         );
+        http.formLogin(
+                form -> form.loginPage("/login").permitAll().defaultSuccessUrl("/", true)
+        );
+        http.logout().permitAll();
         http.headers().frameOptions().disable();
         http.addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

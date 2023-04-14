@@ -1,10 +1,28 @@
 <!DOCTYPE HTML>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <title>Home page</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
 <body>
-<p th:text="'Welcome to ' + ${place} + '!'"/>
+<div th:if="${register_username} != null">
+    <p th:text="'Account ' + ${register_username} + ' is registered'"></p>
+</div>
+<p th:text="'Welcome to ' + ${place}"></p>
+<div sec:authorize="isAuthenticated()">
+    <h1 th:inline="text">Hello <span th:remove="tag" sec:authentication="name"></span>!</h1>
+    <form th:action="@{/logout}" method="post">
+        <input type="submit" value="Log out"/>
+    </form>
+</div>
+<div sec:authorize="isAnonymous()">
+    <p><a th:href="@{/login}">Log in</a></p>
+    <p><a th:href="@{/register}">Register</a></p>
+</div>
+<div th:if="${param.logout}">
+    You have been logged out.
+</div>
+
 </body>
 </html>
