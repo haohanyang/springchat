@@ -63,7 +63,8 @@ public class AuthenticationController {
             var token = authenticationTokenService.generateToken(form.username());
             var response = new AuthenticationResponse(form.username(), token, "ok");
             return ResponseEntity.ok().body(response);
-        } catch (AuthenticationException e) {
+        } catch (Exception e) {
+            logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }

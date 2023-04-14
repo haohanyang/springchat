@@ -19,6 +19,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 import org.springframework.web.socket.sockjs.frame.Jackson2SockJsMessageCodec;
 
 import java.io.ByteArrayInputStream;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -26,6 +27,7 @@ import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 
 import haohanyang.springchat.client.handlers.MessageHandler;
 import haohanyang.springchat.client.handlers.SessionHandler;
@@ -105,31 +107,21 @@ public class Client {
                 var authenticationResponse = mapper.readValue(response.body(), AuthenticationResponse.class);
                 this.token = authenticationResponse.token();
                 this.username = username;
-                logger.info("login({},{}) ok, try to connect to the websocket server", username, password);
-                connect(wsServerUrl);
+
+                // Connect to the stomp server
+                var handshakeHeaders = new WebSocketHttpHeaders();
+                var connectionHeaders = new StompHeaders();
+                connectionHeaders.add("Authorization", "Bearer " + token);
+                var sessionFuture = stompClient.connectAsync(wsServerUrl, handshakeHeaders, connectionHeaders,
+                        new SessionHandler(username, token));
+                this.session = sessionFuture.get();
+                printSucceed("Ok");
             } else {
-                logger.error("login({},{}) error:{}", username, password, response.body());
-                printError("error:" + response.body());
+                printError("Invalid username or password");
             }
         } catch (Exception e) {
-            logger.error("login({},{}) error:{}", username, password, e.getMessage());
-            printError("error:" + e.getMessage());
-        }
-    }
-
-    private void connect(String url) {
-        try {
-            var handshakeHeaders = new WebSocketHttpHeaders();
-            var connectionHeaders = new StompHeaders();
-            connectionHeaders.add("Authorization", "Bearer " + token);
-            var sessionFuture = stompClient.connectAsync(url, handshakeHeaders, connectionHeaders,
-                    new SessionHandler(username, token));
-            this.session = sessionFuture.get();
-            printSucceed("ok");
-        } catch (Exception e) {
-            logger.error("connect({}) error:{}", url, e.getMessage());
-            this.session = null;
-            this.username = null;
+            e.printStackTrace();
+            printError("Failed to connect to the server");
         }
     }
 

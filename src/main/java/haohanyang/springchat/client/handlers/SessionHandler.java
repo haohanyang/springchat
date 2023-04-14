@@ -14,6 +14,7 @@ public class SessionHandler implements StompSessionHandler {
 
     private final String token;
     private final String username;
+
     Logger logger = LoggerFactory.getLogger(SessionHandler.class);
 
     public SessionHandler(String username, String token) {
@@ -23,8 +24,6 @@ public class SessionHandler implements StompSessionHandler {
 
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-        logger.info("Websocket connected, connection id:" + session.getSessionId());
-
         // Subscribe to receive messages
         var receiveHeaders = new StompHeaders();
         receiveHeaders.add("Authorization", "Bearer " + token);
@@ -36,17 +35,16 @@ public class SessionHandler implements StompSessionHandler {
         notificationHeaders.add("Authorization", "Bearer " + token);
         notificationHeaders.setDestination("/notify/user/" + username);
         session.subscribe(notificationHeaders, new NotificationHandler());
-        logger.info("sub to" + "/notify/user/" + username);
     }
 
     @Override
     public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
-        logger.error("Exception " + exception.getMessage());
+        logger.error("Exception {}", exception.getMessage());
     }
 
     @Override
     public void handleTransportError(StompSession session, Throwable exception) {
-        logger.error("TransportError " + exception.getMessage());
+        logger.error("TransportError {}", exception.getMessage());
     }
 
     @Override
