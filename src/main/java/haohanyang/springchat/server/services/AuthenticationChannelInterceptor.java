@@ -37,25 +37,32 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
 
             final String authHeader = accessor.getFirstNativeHeader("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                logger.info("preSend to {} error:{}", accessor.getDestination(), "Invalid token");
+                logger.info("Invalid authorization header format");
                 return null;
             }
             var token = authHeader.split(" ")[1].trim();
-            var username = authenticationTokenService.verifyToken(token);
-            if (username == null) {
-                logger.info("preSend to {} error:{}", accessor.getDestination(), "Invalid token");
+
+            String username;
+            try {
+                username = authenticationTokenService.verifyToken(token);
+            } catch (Exception e) {
+                logger.info("Invalid token {}...", token.substring(0, 7));
                 return null;
             }
 
             // Check if subscription is valid
             if (accessor.getCommand() == StompCommand.SUBSCRIBE) {
                 var destination = accessor.getDestination();
+                if (destination == null) {
+                    logger.info("Invalid destination:{}", "null");
+                    return null;
+                }
                 // User
                 var matcher = userSubscriptionPattern.matcher(destination);
                 if (matcher.matches()) {
                     if (!matcher.group(1).equals(username)) {
                         // User can not subscribe to another user's channel
-                        logger.info("preSend to {} error:{}", accessor.getDestination(), "Invalid destination");
+                        logger.info("Invalid destination:{}", accessor.getDestination());
                         return null;
                     }
                     userGroupService.addUser(username);
@@ -67,7 +74,7 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
                 if (matcher.matches()) {
                     var groupId = matcher.group(1);
                     if (!userGroupService.userInGroup(username, groupId)) {
-                        logger.info("preSend to {} error:{}", accessor.getDestination(), "Invalid destination");
+                        logger.info("Invalid destination:{}", accessor.getDestination());
                         return null;
                     }
                     return message;
@@ -76,6 +83,7 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
                 // Notifications
                 return message;
             }
+
             return message;
         }
         logger.error("StompHeaderAccessor is null");

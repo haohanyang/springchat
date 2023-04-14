@@ -31,7 +31,7 @@ public class WebSecurityConfig {
         // http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable();
         http.authorizeHttpRequests(requests ->
-                requests.requestMatchers("/", "/register", "/api/register", "/api/login", "/api/notify", "/api/send", "/chat/**").permitAll()
+                requests.requestMatchers("/", "/register", "/api/register", "/api/login", "/api/verify", "/chat/**").permitAll()
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
                         .anyRequest().authenticated()
         );
@@ -40,7 +40,7 @@ public class WebSecurityConfig {
         );
         http.logout().permitAll();
         http.headers().frameOptions().disable();
-        http.addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

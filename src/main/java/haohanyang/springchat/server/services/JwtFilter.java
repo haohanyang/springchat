@@ -11,21 +11,29 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
-@Component
+@Service
 public class JwtFilter extends OncePerRequestFilter {
 
     private final UserDetailsManager userDetailsManager;
     private final AuthenticationTokenService authenticationTokenService;
 
-    // This filter doesn't filter websocket and h2 console requests
-    private static final RequestMatcher urlMatcher = new AntPathRequestMatcher("/chat/**");
+    private static final List<RequestMatcher> noFilterRequestMatchers = List.of(
+            new AntPathRequestMatcher("/"),
+            new AntPathRequestMatcher("/register"),
+            new AntPathRequestMatcher("/login"),
+            new AntPathRequestMatcher("/api/verify"),
+            new AntPathRequestMatcher("/api/login"),
+            new AntPathRequestMatcher("/api/register"),
+            new AntPathRequestMatcher("/chat/**"),
+            PathRequest.toH2Console()
+    );
 
     @Autowired
     public JwtFilter(UserDetailsManager userDetailsManager, AuthenticationTokenService authenticationTokenService) {
@@ -33,26 +41,40 @@ public class JwtFilter extends OncePerRequestFilter {
         this.authenticationTokenService = authenticationTokenService;
     }
 
+    public static boolean hasValidHeader(HttpServletRequest request) {
+        var authHeader = request.getHeader("Authorization");
+        if (authHeader == null) {
+            return false;
+        }
+        if (authHeader.isBlank() || !authHeader.startsWith("Bearer ")) {
+            return false;
+        }
+        return true;
+    }
 
+    // Authenticate http request that has valid jwt
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        var authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            var token = authHeader.split(" ")[1].trim();
+        logger.info("filter " + request.getRequestURI());
+        if (hasValidHeader(request)) {
+            var token = request.getHeader("Authorization").split(" ")[1].trim();
             if (!token.isBlank()) {
-                String username = authenticationTokenService.verifyToken(token);
-                if (username == null) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid jwt token");
-                } else if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    try {
-                        var user = userDetailsManager.loadUserByUsername(username);
-                        var authToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(),
-                                user.getAuthorities());
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                    } catch (UsernameNotFoundException e) {
-                        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid username");
+                String username;
+                try {
+                    username = authenticationTokenService.verifyToken(token);
+                    if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                        try {
+                            var user = userDetailsManager.loadUserByUsername(username);
+                            var authToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(),
+                                    user.getAuthorities());
+                            SecurityContextHolder.getContext().setAuthentication(authToken);
+                        } catch (UsernameNotFoundException e) {
+                            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid u/" + username);
+                        }
                     }
+                } catch (Exception e) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid token");
                 }
             }
         }
@@ -61,7 +83,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        RequestMatcher matcher = new NegatedRequestMatcher(urlMatcher);
-        return !matcher.matches(request) && !PathRequest.toH2Console().matches(request);
+        return noFilterRequestMatchers.stream().anyMatch(e -> e.matches(request));
     }
 }

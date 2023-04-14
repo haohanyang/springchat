@@ -4,16 +4,14 @@ import haohanyang.springchat.common.AuthenticationRequest;
 import haohanyang.springchat.common.AuthenticationResponse;
 import haohanyang.springchat.server.services.AuthenticationService;
 
-import haohanyang.springchat.server.services.AuthenticationServiceResult;
 import haohanyang.springchat.server.services.AuthenticationTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 
 
 @RestController
@@ -40,10 +38,22 @@ public class AuthenticationController {
 
     @GetMapping("/api/verify")
     public ResponseEntity<String> verifyToken(@RequestParam(name = "token", defaultValue = "") String token) {
-        if (token.isBlank() || authenticationTokenService.verifyToken(token) == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid");
+        if (token.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token:Token is empty");
         }
-        return ResponseEntity.ok("Valid token");
+        try {
+            authenticationTokenService.verifyToken(token);
+            return ResponseEntity.ok("Valid token");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token:" + e.getMessage());
+        }
+    }
+
+    @GetMapping("/api/user")
+    public ResponseEntity<String> user() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        var username = authentication.getName();
+        return ResponseEntity.ok(username);
     }
 
     @PostMapping("/api/login")
