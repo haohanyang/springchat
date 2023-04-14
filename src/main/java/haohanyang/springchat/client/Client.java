@@ -30,16 +30,21 @@ import java.util.Scanner;
 import haohanyang.springchat.client.handlers.MessageHandler;
 import haohanyang.springchat.client.handlers.SessionHandler;
 
-
 public class Client {
+
+    private final String wsServerUrl;
+    private final String apiServerUrl;
+
+    @Nullable
     private final WebSocketStompClient stompClient;
     @Nullable
     private String username;
+    @Nullable
     private StompSession session = null;
     @Nullable
     private String token = null;
     Logger logger = LoggerFactory.getLogger(Client.class);
-    private final static String SERVER_URL = "ws://localhost:8080/chat";
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     public static final String ANSI_RESET = "\u001B[0m";
@@ -47,7 +52,11 @@ public class Client {
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_YELLOW = "\u001B[33m";
 
-    public Client() {
+    public Client(String wsServerUrl, String apiServerUrl) {
+        // Server url
+        this.wsServerUrl = wsServerUrl;
+        this.apiServerUrl = apiServerUrl;
+
         // Set up stomp client
         var webSocketTransport = new WebSocketTransport(new StandardWebSocketClient());
         List<Transport> transports = Collections.singletonList(webSocketTransport);
@@ -62,7 +71,7 @@ public class Client {
             var form = new AuthenticationRequest(username, password);
             var json = mapper.writeValueAsBytes(form);
 
-            var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/register"))
+            var httpRequest = HttpRequest.newBuilder(new URI(apiServerUrl + "/register"))
                     .header("Content-Type", "application/json;charset=utf-8")
                     .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(json)))
                     .build();
@@ -86,7 +95,7 @@ public class Client {
             var form = new AuthenticationRequest(username, password);
             var json = mapper.writeValueAsBytes(form);
 
-            var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/login"))
+            var httpRequest = HttpRequest.newBuilder(new URI(apiServerUrl + "/login"))
                     .header("Content-Type", "application/json;charset=utf-8")
                     .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(json)))
                     .build();
@@ -97,7 +106,7 @@ public class Client {
                 this.token = authenticationResponse.token();
                 this.username = username;
                 logger.info("login({},{}) ok, try to connect to the websocket server", username, password);
-                connect(SERVER_URL);
+                connect(wsServerUrl);
             } else {
                 logger.error("login({},{}) error:{}", username, password, response.body());
                 printError("error:" + response.body());
@@ -159,7 +168,7 @@ public class Client {
             return;
         }
         try {
-            var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/join"))
+            var httpRequest = HttpRequest.newBuilder(new URI(apiServerUrl + "/join"))
                     .header("Content-Type", "text/plain;charset=utf-8")
                     .header("Authorization", "Bearer " + token)
                     .PUT(HttpRequest.BodyPublishers.ofString(groupId))
@@ -218,7 +227,7 @@ public class Client {
         try {
             var json = mapper.writeValueAsBytes(message);
 
-            var httpRequest = HttpRequest.newBuilder(new URI("http://localhost:8080/send"))
+            var httpRequest = HttpRequest.newBuilder(new URI(apiServerUrl + "/send"))
                     .header("Content-Type", "application/json;charset=utf-8")
                     .header("Authorization", "Bearer " + token)
                     .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(json)))

@@ -27,8 +27,7 @@ public class AuthenticationController {
         this.authenticationTokenService = authenticationTokenService;
     }
 
-
-    @PostMapping("/register")
+    @PostMapping("/api/register")
     public ResponseEntity<String> register(@RequestBody AuthenticationRequest form) {
         var result = authenticationService.register(form.username(), form.password());
         if (result == AuthenticationServiceResult.USER_EXISTS) {
@@ -37,7 +36,7 @@ public class AuthenticationController {
         return new ResponseEntity<>("Registration succeeds", HttpStatus.CREATED);
     }
 
-    @GetMapping("/verify")
+    @GetMapping("/api/verify")
     public ResponseEntity<String> verifyToken(@RequestParam(name = "token", defaultValue = "") String token) {
         if (token.isBlank() || authenticationTokenService.verifyToken(token) == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid");
@@ -45,7 +44,7 @@ public class AuthenticationController {
         return ResponseEntity.ok("Valid token");
     }
 
-    @PostMapping("/login")
+    @PostMapping("/api/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest form) {
         var result = authenticationService.login(form.username(), form.password());
         if (result == AuthenticationServiceResult.SUCCESS) {
@@ -55,12 +54,6 @@ public class AuthenticationController {
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-    }
-
-    // Test authentication
-    @GetMapping("/auth")
-    public String requireAuth() {
-        return "You are authorized";
     }
 }
 

@@ -31,7 +31,7 @@ public class WebSecurityConfig {
         http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable();
         http.authorizeHttpRequests((requests) ->
-                requests.requestMatchers("/", "/register", "/login", "/verify", "/chat/**", "/notify").permitAll()
+                requests.requestMatchers("/", "/api/register", "/api/login", "/chat/**", "/api/notify").permitAll()
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
                         .anyRequest().authenticated()
         );
