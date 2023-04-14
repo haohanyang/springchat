@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -29,11 +30,12 @@ public class AuthenticationController {
 
     @PostMapping("/api/register")
     public ResponseEntity<String> register(@RequestBody AuthenticationRequest form) {
-        var result = authenticationService.register(form.username(), form.password());
-        if (result == AuthenticationServiceResult.USER_EXISTS) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User " + form.username() + " already exists");
+        try {
+            authenticationService.register(form.username(), form.password());
+            return new ResponseEntity<>("ok", HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("u/" + form.username() + " already exists");
         }
-        return new ResponseEntity<>("Registration succeeds", HttpStatus.CREATED);
     }
 
     @GetMapping("/api/verify")
@@ -46,15 +48,16 @@ public class AuthenticationController {
 
     @PostMapping("/api/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest form) {
-        var result = authenticationService.login(form.username(), form.password());
-        if (result == AuthenticationServiceResult.SUCCESS) {
+        try {
+            authenticationService.login(form.username(), form.password());
             var token = authenticationTokenService.generateToken(form.username());
             var response = new AuthenticationResponse(form.username(), token, "ok");
             return ResponseEntity.ok().body(response);
-        } else {
+        } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
+
 }
 
 

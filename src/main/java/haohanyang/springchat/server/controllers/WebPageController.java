@@ -2,18 +2,12 @@ package haohanyang.springchat.server.controllers;
 
 import haohanyang.springchat.common.RegistrationDTO;
 import haohanyang.springchat.server.services.AuthenticationService;
-import haohanyang.springchat.server.services.AuthenticationServiceResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-
-import javax.management.RuntimeErrorException;
 
 @Controller
 public class WebPageController {
@@ -48,16 +42,15 @@ public class WebPageController {
     }
 
     @PostMapping("/register")
-    public String _register(@ModelAttribute("registration") RegistrationDTO registrationDTO, BindingResult result, Model model) {
-
-        var response = authenticationService.register(registrationDTO.getUsername(), registrationDTO.getPassword());
-        if (response == AuthenticationServiceResult.SUCCESS) {
+    public String _register(@ModelAttribute("registration") RegistrationDTO registrationDTO, Model model) {
+        try {
+            authenticationService.register(registrationDTO.getUsername(), registrationDTO.getPassword());
             model.addAttribute("register_username", registrationDTO.getUsername());
             return "index";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("register_error", "u/" + registrationDTO.getUsername() + " already exists");
+            return "register";
         }
-
-        model.addAttribute("register_error", "Failed to register");
-        return "register";
     }
 
 }

@@ -40,26 +40,15 @@ public class AuthenticationService {
         this.grantedAuthorityList = List.of(new SimpleGrantedAuthority("USER"));
     }
 
-
-    public AuthenticationServiceResult register(String username, String password) {
-        if (userDetailsManager.userExists(username)) {
-            logger.info("Register with user/" + username + " fails:username already exists");
-            return AuthenticationServiceResult.USER_EXISTS;
-        }
+    public void register(String username, String password) throws IllegalArgumentException {
         userDetailsManager.createUser(new User(username, passwordEncoder.encode(password), this.grantedAuthorityList));
-        logger.info("Register with user/" + username + " succeeds");
-        return AuthenticationServiceResult.SUCCESS;
+        logger.info("New account u/{} was created", username);
     }
 
-    public AuthenticationServiceResult login(String username, String password) {
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password, this.grantedAuthorityList));
-            logger.info("Login with user/" + username + " succeeds");
-            return AuthenticationServiceResult.SUCCESS;
-        } catch (AuthenticationException e) {
-            logger.info("Login with user/" + username + " fails:" + e.getMessage());
-            return AuthenticationServiceResult.AUTH_FAILS;
-        }
+    public void login(String username, String password) throws AuthenticationException {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password,
+                this.grantedAuthorityList));
+        logger.info("u/{} logged in", username);
     }
 
 }
