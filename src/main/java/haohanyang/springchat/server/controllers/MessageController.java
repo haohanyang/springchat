@@ -59,13 +59,13 @@ public class MessageController {
         messageService.sendGroupMessage(receiver, message);
     }
 
-    @PostMapping("/notify")
+    @PostMapping("/api/notify")
     public String sendNotification(@RequestBody ChatNotification notification, @RequestParam String username) {
         messageService.sendUserNotification(username, notification);
         return "ok";
     }
 
-    @PostMapping("/send")
+    @PostMapping("/api/send")
     public ResponseEntity<String> sendMessage(@RequestBody ChatMessage chatMessage) {
         try {
             Thread.sleep(500);
