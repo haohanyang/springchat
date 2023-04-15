@@ -27,8 +27,6 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // This doesn't apply to websocket messages
-        // http.httpBasic().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf().disable();
         http.authorizeHttpRequests(requests ->
                 requests.requestMatchers("/", "/register", "/api/register", "/api/login", "/api/verify", "/chat/**").permitAll()

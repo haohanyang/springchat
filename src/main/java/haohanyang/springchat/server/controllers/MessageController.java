@@ -34,31 +34,6 @@ public class MessageController {
     }
 
 
-    @MessageMapping("/user")
-    public void userMessage(@Payload ChatMessage chatMessage) throws Exception {
-        Thread.sleep(500);
-        var content = chatMessage.content();
-        var sender = chatMessage.sender();
-        var receiver = chatMessage.receiver();
-        logger.info(sender + " -> " + "user/" + receiver + ":" + content);
-        var message = new ChatMessage(chatMessage.chatMessageType(), content, sender,
-                receiver, LocalDateTime.now().toString());
-        messageService.sendUserMessage(receiver, message);
-        //simpMessagingTemplate.convertAndSend("/receive/user/" + receiver, message);
-    }
-
-    @MessageMapping("/group")
-    public void groupMessage(@Payload ChatMessage chatMessage) throws Exception {
-        Thread.sleep(500);
-        var content = chatMessage.content();
-        var sender = chatMessage.sender();
-        var receiver = chatMessage.receiver();
-        logger.info(sender + " -> " + "group/" + receiver + ":" + content);
-        var message = new ChatMessage(chatMessage.chatMessageType(), content, sender,
-                receiver, LocalDateTime.now().toString());
-        messageService.sendGroupMessage(receiver, message);
-    }
-
     @PostMapping("/api/notify")
     public String sendNotification(@RequestBody ChatNotification notification, @RequestParam String username) {
         messageService.sendUserNotification(username, notification);
@@ -84,7 +59,7 @@ public class MessageController {
             } else {
                 messageService.sendGroupMessage(receiver, message);
             }
-            return ResponseEntity.ok().body("ok");
+            return ResponseEntity.status(HttpStatus.CREATED).body("ok");
         } catch (InterruptedException e) {
             logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(e.getMessage());

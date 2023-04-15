@@ -115,7 +115,7 @@ public class Client {
                 var sessionFuture = stompClient.connectAsync(wsServerUrl, handshakeHeaders, connectionHeaders,
                         new SessionHandler(username, token));
                 this.session = sessionFuture.get();
-                printSucceed("Ok");
+                printSucceed("ok");
             } else {
                 printError("Invalid username or password");
             }
