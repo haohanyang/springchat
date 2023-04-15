@@ -21,6 +21,11 @@ public class UserAuthenticationConfig {
         var initPassword2 = "user2";
         var encoder = new BCryptPasswordEncoder();
 
+        var admin = User.withUsername("admin")
+                .password(encoder.encode("admin"))
+                .roles("ADMIN", "USER")
+                .build();
+
         var user1 =
                 User.withUsername(initUsername1)
                         .password(encoder.encode(initPassword1))
@@ -33,7 +38,7 @@ public class UserAuthenticationConfig {
                         .roles("USER")
                         .build();
 
-        return new InMemoryUserDetailsManager(user1, user2);
+        return new InMemoryUserDetailsManager(admin,user1, user2);
     }
 
     @Bean

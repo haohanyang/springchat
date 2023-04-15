@@ -31,7 +31,8 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests(requests ->
                 requests.requestMatchers("/", "/register", "/api/register", "/api/login", "/api/verify", "/chat/**").permitAll()
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/notify").hasRole("ADMIN")
+                        .anyRequest().hasRole("USER")
         );
         http.formLogin(
                 form -> form.loginPage("/login").permitAll().defaultSuccessUrl("/", true)

@@ -35,9 +35,9 @@ public class MessageController {
 
 
     @PostMapping("/api/notify")
-    public String sendNotification(@RequestBody ChatNotification notification, @RequestParam String username) {
+    public ResponseEntity<String> sendNotification(@RequestBody ChatNotification notification, @RequestParam String username) {
         messageService.sendUserNotification(username, notification);
-        return "ok";
+        return ResponseEntity.status(HttpStatus.CREATED).body("ok");
     }
 
     @PostMapping("/api/send")
