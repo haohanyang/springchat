@@ -12,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,10 +28,15 @@ public class UserGroupController {
         this.messageService = new MessageService(simpMessagingTemplate);
     }
 
-    @PutMapping("/join")
-    public ResponseEntity<ChatNotification> joinGroup(@RequestBody String groupId) {
+    @PutMapping("/api/join")
+    public ResponseEntity<ChatNotification> joinGroup(@RequestBody String groupId,
+                                                      @RequestParam(defaultValue = "false") boolean initUser) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         var username = (String) authentication.getPrincipal();
+        if (initUser) {
+            // for test, mock stomp subscribe
+            userGroupService.addUser(username);
+        }
         var result = userGroupService.addMember(username, groupId);
         if (result.type() == ChatNotificationType.SUCCESS) {
             // Notify group members

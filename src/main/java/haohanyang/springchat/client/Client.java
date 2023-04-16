@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
@@ -80,17 +82,16 @@ public class Client {
 
             var response = HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                logger.info("register({},{}) ok", username, password);
                 printSucceed("ok");
             } else {
-                logger.info("register({},{}) error:{}", username, password, response.body());
                 printError("error:" + response.body());
             }
         } catch (Exception e) {
-            logger.info("register({},{}) error:{}", username, password, e.getMessage());
             printError("error:" + e.getMessage());
         }
     }
+
+
 
     private void login(String username, String password) {
         try {
@@ -183,13 +184,13 @@ public class Client {
                 printResponse(notification);
             }
         } catch (Exception e) {
-            logger.error("join({}) error:{}", groupId, e.getMessage());
-            printError("error:" + e.getMessage());
+            e.printStackTrace();
         }
     }
 
 
     // Send message through websocket
+    @Deprecated
     private boolean sendStomp(ChatMessageType chatMessageType, String receiver, String content) {
         if (session == null || token == null) {
             logger.error("User hasn't logged in");
@@ -227,20 +228,18 @@ public class Client {
 
             HttpResponse<String> response = HttpClient.newBuilder().build().send(httpRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                logger.info("send({},{},{}) ok", chatMessageType, receiver, content);
                 printSucceed("ok");
             } else {
-                logger.error("send({},{},{}) error:{}", chatMessageType, receiver, content, response.body());
                 printError("error:" + response.body());
             }
         } catch (Exception e) {
-            logger.error("send({},{},{}) error:{}", chatMessageType, receiver, content, e.getMessage());
             printError("error:" + e.getMessage());
         }
 
     }
 
     public void run() {
+
         while (true) {
             var scanner = new Scanner(System.in);
             var commandString = scanner.nextLine();

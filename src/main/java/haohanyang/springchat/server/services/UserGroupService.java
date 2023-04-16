@@ -67,7 +67,10 @@ public class UserGroupService {
     public void addUser(String username) {
         try {
             mutex.lock();
-            userGroups.computeIfAbsent(username, k -> new HashSet<>());
+            userGroups.computeIfAbsent(username, k -> {
+                logger.info("New user u/{} connected", username);
+                return new HashSet<>();
+            });
         } finally {
             mutex.unlock();
         }

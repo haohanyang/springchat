@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import haohanyang.springchat.common.*;
 import haohanyang.springchat.server.SpringChatServerApplication;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

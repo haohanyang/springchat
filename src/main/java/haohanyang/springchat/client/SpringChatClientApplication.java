@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 
 import static java.lang.System.exit;
 
-@SpringBootApplication(exclude = SecurityAutoConfiguration.class)
+@SpringBootApplication(exclude = SecurityAutoConfiguration.class, scanBasePackages = "haohanyang.springchat.client")
 public class SpringChatClientApplication implements CommandLineRunner {
 
     @Autowired
