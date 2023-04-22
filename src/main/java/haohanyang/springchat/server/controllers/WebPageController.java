@@ -1,6 +1,8 @@
 package haohanyang.springchat.server.controllers;
 
 import haohanyang.springchat.common.RegistrationDTO;
+import haohanyang.springchat.server.models.User;
+import haohanyang.springchat.server.repositories.UserRepository;
 import haohanyang.springchat.server.services.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Controller
 public class WebPageController {
 
+    @Autowired
+    private UserRepository userRepository;
     private final AuthenticationService authenticationService;
 
     @Autowired

@@ -21,9 +21,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,classes = SpringChatServerApplication.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringChatServerApplication.class)
 @AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application-server.properties")
 class MessageControllerTest {
 
     static final ObjectMapper mapper = new ObjectMapper();

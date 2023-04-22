@@ -31,8 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
             new AntPathRequestMatcher("/api/verify"),
             new AntPathRequestMatcher("/api/login"),
             new AntPathRequestMatcher("/api/register"),
-            new AntPathRequestMatcher("/chat/**"),
-            PathRequest.toH2Console()
+            new AntPathRequestMatcher("/chat/**")
     );
 
     @Autowired

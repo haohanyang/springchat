@@ -17,11 +17,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,classes = SpringChatServerApplication.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringChatServerApplication.class)
 @AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application-server.properties")
 class AuthenticationControllerTest {
 
     static final ObjectMapper mapper = new ObjectMapper();

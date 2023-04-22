@@ -21,9 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.post;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,classes = SpringChatServerApplication.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringChatServerApplication.class)
 @AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application-server.properties")
 class UserGroupControllerTest {
 
     static final ObjectMapper mapper = new ObjectMapper();

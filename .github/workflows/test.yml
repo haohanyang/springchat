@@ -1,11 +1,4 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
-
-name: Unit Test
+name: Test
 
 on:
   push:
@@ -34,5 +27,10 @@ jobs:
         run: ./gradlew -b build_server.gradle build -x test
       - name: Test Server
         run: ./gradlew -b build_server.gradle test
+        env:
+          TEST_DATASOURCE_URL: ${{ secrets.TEST_DATASOURCE_URL }}
+          TEST_DATASOURCE_USERNAME: ${{ secrets.TEST_DATASOURCE_USERNAME }}
+          TEST_DATASOURCE_PASSWORD: ${{ secrets.TEST_DATASOURCE_PASSWORD }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
       - name: Build Client
         run: ./gradlew -b build_client.gradle build -x test

@@ -29,8 +29,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.authorizeHttpRequests(requests ->
-                requests.requestMatchers("/", "/register", "/api/register", "/api/login", "/api/verify", "/chat/**").permitAll()
-                        .requestMatchers(PathRequest.toH2Console()).permitAll()
+                requests.requestMatchers("/","/g","/register", "/api/register", "/api/login", "/api/verify", "/chat/**").permitAll()
                         .requestMatchers("/api/notify").hasRole("ADMIN")
                         .anyRequest().hasRole("USER")
         );

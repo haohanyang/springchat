@@ -11,9 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-server.properties")
 class AuthenticationTokenServiceTest {
-
 
     private final AuthenticationTokenService authenticationTokenService;
 
