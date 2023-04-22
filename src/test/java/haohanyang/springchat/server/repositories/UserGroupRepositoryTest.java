@@ -10,14 +10,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.TestPropertySource;
 
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@TestPropertySource(properties = {
+        "spring.sql.init.mode=always",
+        "spring.jpa.hibernate.ddl-auto=validate",
+        "spring.datasource.url=${TEST_DATASOURCE_URL}",
+        "spring.datasource.username=${TEST_DATASOURCE_USERNAME}",
+        "spring.datasource.password=${TEST_DATASOURCE_PASSWORD}",
+})
 class UserGroupRepositoryTest {
-
     @Autowired
     private TestEntityManager testEntityManager;
 

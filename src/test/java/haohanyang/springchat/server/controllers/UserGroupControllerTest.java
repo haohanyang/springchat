@@ -23,6 +23,11 @@ import static org.springframework.mock.http.server.reactive.MockServerHttpReques
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringChatServerApplication.class)
 @AutoConfigureMockMvc
+@TestPropertySource(locations = "classpath:application-server.properties", properties = {
+        "spring.datasource.url=${TEST_DATASOURCE_URL}",
+        "spring.datasource.username=${TEST_DATASOURCE_USERNAME}",
+        "spring.datasource.password=${TEST_DATASOURCE_PASSWORD}",
+})
 class UserGroupControllerTest {
 
     static final ObjectMapper mapper = new ObjectMapper();

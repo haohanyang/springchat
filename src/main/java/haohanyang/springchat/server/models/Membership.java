@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.util.Date;
 
+
 @Entity
 @Table(schema = "app", name = "membership")
 public class Membership {
@@ -21,6 +22,7 @@ public class Membership {
     private Group group;
 
     @Column(name = "joined_time")
+    @Temporal(TemporalType.TIME)
     private Date joinedTime = new Date();
 
     public Membership() {

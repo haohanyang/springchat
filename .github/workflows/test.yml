@@ -26,11 +26,11 @@ jobs:
       - name: Build Server
         run: ./gradlew -b build_server.gradle build -x test
       - name: Test Server
-        run: ./gradlew -b build_server.gradle test
         env:
           TEST_DATASOURCE_URL: ${{ secrets.TEST_DATASOURCE_URL }}
           TEST_DATASOURCE_USERNAME: ${{ secrets.TEST_DATASOURCE_USERNAME }}
           TEST_DATASOURCE_PASSWORD: ${{ secrets.TEST_DATASOURCE_PASSWORD }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+        run: ./gradlew -b build_server.gradle test
       - name: Build Client
         run: ./gradlew -b build_client.gradle build -x test

@@ -11,6 +11,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@TestPropertySource(locations = "classpath:application-server.properties", properties = {
+        "spring.datasource.url=${TEST_DATASOURCE_URL}",
+        "spring.datasource.username=${TEST_DATASOURCE_USERNAME}",
+        "spring.datasource.password=${TEST_DATASOURCE_PASSWORD}",
+})
 class AuthenticationTokenServiceTest {
 
     private final AuthenticationTokenService authenticationTokenService;

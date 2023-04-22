@@ -12,6 +12,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@TestPropertySource(locations = "classpath:application-server.properties", properties = {
+        "spring.datasource.url=${TEST_DATASOURCE_URL}",
+        "spring.datasource.username=${TEST_DATASOURCE_USERNAME}",
+        "spring.datasource.password=${TEST_DATASOURCE_PASSWORD}",
+})
 class AuthenticationServiceTest {
 
     private final AuthenticationService authenticationService;
