@@ -5,6 +5,7 @@ import org.hibernate.annotations.Type;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(schema = "app", name = "\"user\"")
@@ -38,6 +39,10 @@ public class User {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+    }
+
+    public int hashCode() {
+        return id.hashCode();
     }
 
     public Integer getId() {
@@ -91,4 +96,13 @@ public class User {
     public void setUserMessagesSent(Set<UserMessage> userMessagesSent) {
         this.userMessagesSent = userMessagesSent;
     }
+
+    public boolean isMemberOf(Group group) {
+        return memberships.stream().map(Membership::getGroup).collect(Collectors.toSet()).contains(group);
+    }
+
+    public boolean isMemberOf(String groupName) {
+        return memberships.stream().map(e -> e.getGroup().getGroupName()).collect(Collectors.toSet()).contains(groupName);
+    }
+
 }

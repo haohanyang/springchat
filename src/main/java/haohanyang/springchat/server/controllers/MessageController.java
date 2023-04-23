@@ -28,9 +28,10 @@ public class MessageController {
     private final MessageService messageService;
 
     @Autowired
-    public MessageController(SimpMessagingTemplate simpMessagingTemplate) {
+    public MessageController(SimpMessagingTemplate simpMessagingTemplate, MessageService messageService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
-        this.messageService = new MessageService(simpMessagingTemplate);
+        this.messageService = messageService;
+        //this.messageService = new MessageService(simpMessagingTemplate);
     }
 
 
@@ -41,26 +42,19 @@ public class MessageController {
     }
 
     @PostMapping("/api/send")
-    public ResponseEntity<String> sendMessage(@RequestBody ChatMessage chatMessage) {
+    public ResponseEntity<String> sendMessage(@RequestBody ChatMessage message) {
         try {
             Thread.sleep(500);
-            var content = chatMessage.content();
-            var sender = chatMessage.sender();
-            var receiver = chatMessage.receiver();
-            if (chatMessage.chatMessageType() == ChatMessageType.USER) {
-                logger.info("u/{} -> u/{} : {}", sender, receiver, content);
+            var content = message.content();
+            var sender = message.sender();
+            var receiver = message.receiver();
+            if (message.chatMessageType() == ChatMessageType.USER) {
+                messageService.sendUserMessage(message);
             } else {
-                logger.info("u/{} -> g/{} : {}", sender, receiver, content);
-            }
-            var message = new ChatMessage(chatMessage.chatMessageType(), content, sender,
-                    receiver, LocalDateTime.now().toString());
-            if (chatMessage.chatMessageType() == ChatMessageType.USER) {
-                messageService.sendUserMessage(receiver, message);
-            } else {
-                messageService.sendGroupMessage(receiver, message);
+                messageService.sendGroupMessage(message);
             }
             return ResponseEntity.status(HttpStatus.CREATED).body("ok");
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(e.getMessage());
         }

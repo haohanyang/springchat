@@ -34,10 +34,10 @@ CREATE TABLE app.membership
     PRIMARY KEY (member_id, group_id),
     FOREIGN KEY (member_id)
         REFERENCES app.[user] (id)
-        ON DELETE CASCADE,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (group_id)
         REFERENCES app.[group] (id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE ON UPDATE CASCADE,
 );
 
 IF NOT EXISTS(
@@ -54,11 +54,11 @@ CREATE TABLE app.group_message
     content   VARCHAR(200),
     FOREIGN KEY (sender_id)
         REFERENCES app.[user] (id)
-        ON DELETE NO ACTION,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (group_id)
         REFERENCES app.[group] (id)
-        ON DELETE NO ACTION
-)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+);
 
 IF NOT EXISTS(
         SELECT *
@@ -78,6 +78,6 @@ CREATE TABLE app.user_message
     FOREIGN KEY (receiver_id)
         REFERENCES app.[user] (id)
         ON DELETE NO ACTION
-)
+);
 
 

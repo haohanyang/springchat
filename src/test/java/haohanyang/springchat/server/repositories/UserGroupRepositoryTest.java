@@ -66,7 +66,7 @@ class UserGroupRepositoryTest {
     @Test
     @Transactional(readOnly = true)
     public void test_user_groups() {
-        var memberships = membershipRepository.findJoinedGroups("user1");
+        var memberships = membershipRepository.findByUsername("user1");
         var groupNames = memberships.stream().map(e -> e.getGroup().getGroupName()).collect(Collectors.toSet());
         assertTrue(groupNames.containsAll(Set.of("group1", "group2")));
     }
@@ -74,7 +74,7 @@ class UserGroupRepositoryTest {
     @Test
     @Transactional(readOnly = true)
     public void group_members() {
-        var memberships = membershipRepository.findGroupMembers("group1");
+        var memberships = membershipRepository.findByGroupName("group1");
         var memberNames = memberships.stream().map(e -> e.getMember().getUsername()).collect(Collectors.toSet());
         assertTrue(memberNames.containsAll(Set.of("user1", "user3")));
     }

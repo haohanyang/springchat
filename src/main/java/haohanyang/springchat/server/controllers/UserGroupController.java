@@ -19,13 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserGroupController {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final UserGroupService userGroupService;
-    private final MessageService messageService;
+
 
     @Autowired
     public UserGroupController(SimpMessagingTemplate simpMessagingTemplate, UserGroupService userGroupService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.userGroupService = userGroupService;
-        this.messageService = new MessageService(simpMessagingTemplate);
     }
 
     @PutMapping("/api/join")
@@ -41,7 +40,7 @@ public class UserGroupController {
             userGroupService.addMember(username, groupName);
             // Notify group members
             var notification = new ChatNotification(ChatNotificationType.INFO, "u/" + username + " joined g/" + groupName);
-            messageService.sendGroupNotification(groupName, notification);
+            simpMessagingTemplate.convertAndSend("/notify/group/" + groupName, notification);
             return ResponseEntity.status(HttpStatus.CREATED).body("ok");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

@@ -25,7 +25,7 @@ public class UserMessage {
     @Temporal(TemporalType.TIME)
     private Date sentTime;
 
-    @Column(name = "content")
+    @Column(name = "content", length = 200)
     private String content;
 
 

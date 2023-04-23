@@ -92,7 +92,6 @@ public class Client {
     }
 
 
-
     private void login(String username, String password) {
         try {
             var form = new AuthenticationRequest(username, password);
@@ -203,7 +202,7 @@ public class Client {
         } else {
             header.setDestination("/send/group");
         }
-        session.send(header, new ChatMessage(ChatMessageType.USER, content, username, receiver, ""));
+        session.send(header, new ChatMessage(ChatMessageType.USER, content, username, receiver));
         return true;
     }
 
@@ -216,7 +215,7 @@ public class Client {
             return;
         }
 
-        var message = new ChatMessage(chatMessageType, content, username, receiver, "");
+        var message = new ChatMessage(chatMessageType, content, username, receiver);
         try {
             var json = mapper.writeValueAsBytes(message);
 

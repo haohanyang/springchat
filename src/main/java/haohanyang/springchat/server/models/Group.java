@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(schema = "app", name = "\"group\"")
@@ -23,11 +24,15 @@ public class Group {
     private Set<GroupMessage> messages;
 
     public Group() {
-
     }
 
     public Group(String groupName) {
         this.groupName = groupName;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 
     public Integer getId() {
@@ -56,6 +61,14 @@ public class Group {
 
     public void setMessages(Set<GroupMessage> messages) {
         this.messages = messages;
+    }
+
+    public boolean hasMember(User user) {
+        return memberships.stream().map(Membership::getMember).collect(Collectors.toSet()).contains(user);
+    }
+
+    public boolean hasMember(String username) {
+        return memberships.stream().map(e -> e.getMember().getUsername()).collect(Collectors.toSet()).contains(username);
     }
 }
 

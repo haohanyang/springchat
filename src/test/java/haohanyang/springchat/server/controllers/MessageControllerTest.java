@@ -57,7 +57,7 @@ class MessageControllerTest {
     @Test
     public void test_user_message() throws Exception {
         assertNotNull(token);
-        var message = new ChatMessage(ChatMessageType.USER, "test message", "user1", "user2", "");
+        var message = new ChatMessage(ChatMessageType.USER, "test message", "user1", "user2");
         var body = mapper.writeValueAsBytes(message);
         var sendMessageRequest = MockMvcRequestBuilders.post("/api/send")
                 .header("Authorization", "Bearer " + token)
@@ -69,7 +69,7 @@ class MessageControllerTest {
     @Test
     public void test_group_message() throws Exception {
         assertNotNull(token);
-        var message = new ChatMessage(ChatMessageType.GROUP, "test message", "user1", "group1", "");
+        var message = new ChatMessage(ChatMessageType.GROUP, "test message", "user1", "group1");
         var body = mapper.writeValueAsBytes(message);
         var sendMessageRequest = MockMvcRequestBuilders.post("/api/send")
                 .header("Authorization", "Bearer " + token)

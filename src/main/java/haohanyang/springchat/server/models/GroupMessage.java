@@ -25,13 +25,16 @@ public class GroupMessage {
     @Temporal(TemporalType.TIME)
     private Date sentTime;
 
-    public GroupMessage() {
+    @Column(name = "content", length = 200)
+    private String content;
 
+    public GroupMessage() {
     }
 
-    public GroupMessage(User sender, Group group) {
+    public GroupMessage(User sender, Group group, String content) {
         this.sender = sender;
         this.group = group;
+        this.content = content;
         this.sentTime = new Date();
     }
 
