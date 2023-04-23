@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    private JwtFilter jwtFilter;
+    private final JwtFilter jwtFilter;
 
     @Autowired
     public WebSecurityConfig(JwtFilter jwtFilter) {
@@ -29,9 +29,9 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.authorizeHttpRequests(requests ->
-                requests.requestMatchers("/","/g","/register", "/api/register", "/api/login", "/api/verify", "/chat/**").permitAll()
+                requests.requestMatchers("/", "/g", "/register", "/api/register", "/api/login", "/api/verify", "/chat/**").permitAll()
                         .requestMatchers("/api/notify").hasRole("ADMIN")
-                        .anyRequest().hasRole("USER")
+                        .anyRequest().authenticated()
         );
         http.formLogin(
                 form -> form.loginPage("/login").permitAll().defaultSuccessUrl("/", true)

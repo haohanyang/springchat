@@ -3,6 +3,7 @@ package haohanyang.springchat.server.repositories;
 import haohanyang.springchat.server.models.Group;
 import haohanyang.springchat.server.models.Membership;
 import haohanyang.springchat.server.models.User;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,11 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,39 +42,48 @@ class UserGroupRepositoryTest {
     @Autowired
     private MembershipRepository membershipRepository;
 
+
     @Test
-    public void should_find_user() {
+    @Transactional(readOnly = true)
+    public void test_find_user() {
         var username = "user1";
         var dbUser = userRepository.findByUsername(username);
         assertTrue(dbUser.isPresent());
         assertEquals(username, dbUser.get().getUsername());
+        assertTrue(dbUser.get().getMemberships().size() > 0);
     }
 
     @Test
-    public void should_find_group() {
+    @Transactional(readOnly = true)
+    public void test_find_group() {
         var groupName = "group1";
         var dbGroup = groupRepository.findByGroupName(groupName);
         assertTrue(dbGroup.isPresent());
         assertEquals(groupName, dbGroup.get().getGroupName());
+        assertTrue(dbGroup.get().getMemberships().size() > 0);
     }
 
     @Test
-    public void should_find_joined_groups() {
-        var username = "user2";
-        var joinedGroups = membershipRepository.findJoinedGroups(username);
-        assertEquals(2, joinedGroups.size());
+    @Transactional(readOnly = true)
+    public void test_user_groups() {
+        var memberships = membershipRepository.findJoinedGroups("user1");
+        var groupNames = memberships.stream().map(e -> e.getGroup().getGroupName()).collect(Collectors.toSet());
+        assertTrue(groupNames.containsAll(Set.of("group1", "group2")));
     }
 
     @Test
-    public void should_find_group_members() {
-        var groupName = "group1";
-        var members = membershipRepository.findGroupMembers(groupName);
-        assertEquals(2, members.size());
+    @Transactional(readOnly = true)
+    public void group_members() {
+        var memberships = membershipRepository.findGroupMembers("group1");
+        var memberNames = memberships.stream().map(e -> e.getMember().getUsername()).collect(Collectors.toSet());
+        assertTrue(memberNames.containsAll(Set.of("user1", "user3")));
     }
 
+
     @Test
-    public void should_create_new_user() {
-        var username = "user-repo-test";
+    @Transactional
+    public void test_create_new_user() {
+        var username = "new_user";
         var user = new User(username, "my-password");
         userRepository.save(user);
 
@@ -80,8 +94,9 @@ class UserGroupRepositoryTest {
     }
 
     @Test
-    public void should_create_new_group() {
-        var groupName = "group-repo-test";
+    @Transactional
+    public void test_create_new_group() {
+        var groupName = "new_group";
         var group = new Group(groupName);
         groupRepository.save(group);
 
@@ -91,9 +106,11 @@ class UserGroupRepositoryTest {
     }
 
     @Test
-    public void should_user_join_group() {
+    @Transactional
+    public void test_user_join_group() {
+        // user1 joined group4
         var username = "user1";
-        var groupName = "group3";
+        var groupName = "group4";
 
         var user = userRepository.findByUsername(username);
         var group = groupRepository.findByGroupName(groupName);
@@ -105,14 +122,14 @@ class UserGroupRepositoryTest {
 
         testEntityManager.getEntityManager().getTransaction().commit();
 
-        var dbUser = userRepository.findByUsername(username);
-        assertTrue(dbUser.isPresent());
-        var dbUserMembership = dbUser.get().getMemberships();
+        var user_ = userRepository.findByUsername(username);
+        assertTrue(user_.isPresent());
+        var dbUserMembership = user_.get().getMemberships();
         assertTrue(dbUserMembership.contains(membership));
 
-        var dbGroup = groupRepository.findByGroupName(groupName);
-        assertTrue(dbGroup.isPresent());
-        var dbGroupMembership = dbGroup.get().getMemberships();
+        var group_ = groupRepository.findByGroupName(groupName);
+        assertTrue(group_.isPresent());
+        var dbGroupMembership = group_.get().getMemberships();
         assertTrue(dbGroupMembership.contains(membership));
     }
 }

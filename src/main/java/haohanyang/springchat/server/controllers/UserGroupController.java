@@ -29,22 +29,24 @@ public class UserGroupController {
     }
 
     @PutMapping("/api/join")
-    public ResponseEntity<ChatNotification> joinGroup(@RequestBody String groupId,
-                                                      @RequestParam(defaultValue = "false") boolean initUser) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        var username = (String) authentication.getPrincipal();
-        if (initUser) {
-            // for test, mock stomp subscribe
-            userGroupService.addUser(username);
-        }
-        var result = userGroupService.addMember(username, groupId);
-        if (result.type() == ChatNotificationType.SUCCESS) {
+    public ResponseEntity<String> joinGroup(@RequestBody String groupName,
+                                            @RequestParam(defaultValue = "false") boolean initUser) {
+        try {
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            var username = (String) authentication.getPrincipal();
+            if (initUser) {
+                // for test, mock stomp subscribe
+                userGroupService.addUser(username);
+            }
+            userGroupService.addMember(username, groupName);
             // Notify group members
-            messageService.sendGroupNotification(groupId, result);
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+            var notification = new ChatNotification(ChatNotificationType.INFO, "u/" + username + " joined g/" + groupName);
+            messageService.sendGroupNotification(groupName, notification);
+            return ResponseEntity.status(HttpStatus.CREATED).body("ok");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 
 }

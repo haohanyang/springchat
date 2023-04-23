@@ -1,45 +1,14 @@
 package haohanyang.springchat.server.configs;
 
+import haohanyang.springchat.server.identity.Md5PasswordEncoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
 
 @Configuration
 public class UserAuthenticationConfig {
-    @Bean
-    public UserDetailsManager userDetailsManager() {
-        var initUsername1 = "user1";
-        var initPassword1 = "user1";
-
-        var initUsername2 = "user2";
-        var initPassword2 = "user2";
-        var encoder = new BCryptPasswordEncoder();
-
-        var admin = User.withUsername("admin")
-                .password(encoder.encode("admin"))
-                .roles("ADMIN", "USER")
-                .build();
-
-        var user1 =
-                User.withUsername(initUsername1)
-                        .password(encoder.encode(initPassword1))
-                        .roles("USER")
-                        .build();
-
-        var user2 =
-                User.withUsername(initUsername2)
-                        .password(encoder.encode(initPassword2))
-                        .roles("USER")
-                        .build();
-
-        return new InMemoryUserDetailsManager(admin,user1, user2);
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -48,7 +17,7 @@ public class UserAuthenticationConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new Md5PasswordEncoder();
     }
 
 }

@@ -13,11 +13,14 @@ public class Group {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "group_name", unique = true, nullable = false)
+    @Column(name = "group_name", unique = true, nullable = false, length = 20)
     private String groupName;
 
     @OneToMany(mappedBy = "group")
     private Set<Membership> memberships = new HashSet<>();
+
+    @OneToMany(mappedBy = "group")
+    private Set<GroupMessage> messages;
 
     public Group() {
 
@@ -39,6 +42,10 @@ public class Group {
         return memberships;
     }
 
+    public Set<GroupMessage> getMessages() {
+        return messages;
+    }
+
     public void setGroupName(String groupName) {
         this.groupName = groupName;
     }
@@ -46,40 +53,9 @@ public class Group {
     public void setMemberships(Set<Membership> memberships) {
         this.memberships = memberships;
     }
+
+    public void setMessages(Set<GroupMessage> messages) {
+        this.messages = messages;
+    }
 }
 
-//@Entity
-//@Table(name = "GROUP_")
-//public class Group {
-//    @Id
-//    @Column(name = "ID_")
-//    private String id;
-//
-//    @OneToMany(mappedBy = "group")
-//    private Set<Membership> memberships = new HashSet<>();
-//
-//
-//    public Group() {
-//    }
-//
-//    public Group(String id) {
-//        this.id = id;
-//    }
-//
-//    public String getId() {
-//        return id;
-//    }
-//
-//    public Set<Membership> getMemberships() {
-//        return memberships;
-//    }
-//
-//    public void setMemberships(Set<Membership> memberships) {
-//        this.memberships = memberships;
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return getId();
-//    }
-//}

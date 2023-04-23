@@ -12,10 +12,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringChatServerApplication.class)
@@ -37,8 +39,8 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void validLogin() throws Exception {
-        var body = authenticationBody("user1", "user1");
+    void test_valid_login() throws Exception {
+        var body = authenticationBody("user1", "password1");
         var loginRequest = MockMvcRequestBuilders.post("/api/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body);
@@ -60,7 +62,7 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void invalidLogin() throws Exception {
+    void test_invalid_Login() throws Exception {
         var body = authenticationBody("user4", "user4");
         var request = MockMvcRequestBuilders.post("/api/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -69,8 +71,8 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void validRegistration() throws Exception {
-        var body = authenticationBody("user3", "user3");
+    void test_valid_registration() throws Exception {
+        var body = authenticationBody("user_not_exists", "password");
         var request = MockMvcRequestBuilders.post("/api/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body);
@@ -79,7 +81,7 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void invalidRegistration() throws Exception {
+    void test_invalid_registration() throws Exception {
         var json = authenticationBody("user1", "user1");
         var request = MockMvcRequestBuilders.post("/api/register")
                 .contentType(MediaType.APPLICATION_JSON)

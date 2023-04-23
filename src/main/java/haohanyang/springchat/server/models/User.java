@@ -1,6 +1,7 @@
 package haohanyang.springchat.server.models;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Type;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,14 +14,23 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "username", unique = true, nullable = false)
+    @Column(name = "username", unique = true, nullable = false, length = 20)
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = false, length = 32)
     private String password;
 
     @OneToMany(mappedBy = "member")
     private Set<Membership> memberships = new HashSet<>();
+
+    @OneToMany(mappedBy = "sender")
+    private Set<UserMessage> userMessagesSent;
+
+    @OneToMany(mappedBy = "receiver")
+    private Set<UserMessage> userMessagesReceived;
+
+    @OneToMany(mappedBy = "sender")
+    private Set<GroupMessage> groupMessagesSent;
 
     public User() {
     }
@@ -46,6 +56,18 @@ public class User {
         return memberships;
     }
 
+    public Set<UserMessage> getUserMessagesSent() {
+        return userMessagesSent;
+    }
+
+    public Set<UserMessage> getUserMessagesReceived() {
+        return userMessagesReceived;
+    }
+
+    public Set<GroupMessage> getGroupMessagesSent() {
+        return groupMessagesSent;
+    }
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -56,5 +78,17 @@ public class User {
 
     public void setMemberships(Set<Membership> memberships) {
         this.memberships = memberships;
+    }
+
+    public void setGroupMessagesSent(Set<GroupMessage> groupMessagesSent) {
+        this.groupMessagesSent = groupMessagesSent;
+    }
+
+    public void setUserMessagesReceived(Set<UserMessage> userMessagesReceived) {
+        this.userMessagesReceived = userMessagesReceived;
+    }
+
+    public void setUserMessagesSent(Set<UserMessage> userMessagesSent) {
+        this.userMessagesSent = userMessagesSent;
     }
 }

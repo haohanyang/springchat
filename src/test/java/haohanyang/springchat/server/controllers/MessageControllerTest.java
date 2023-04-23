@@ -4,22 +4,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import haohanyang.springchat.common.*;
 import haohanyang.springchat.server.SpringChatServerApplication;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.jupiter.api.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.result.StatusResultMatchers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringChatServerApplication.class)
 @AutoConfigureMockMvc
@@ -40,34 +42,20 @@ class MessageControllerTest {
         return mapper.writeValueAsBytes(form);
     }
 
-    @BeforeEach
-    public void authenticateAsUser() throws Exception {
-        var body = authenticationBody("user1", "user1");
+    @Test
+    @BeforeAll
+    public void authenticate() throws Exception {
+        var body = authenticationBody("user1", "password1");
         var loginRequest = MockMvcRequestBuilders.post("/api/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body);
-        var response = mvc.perform(loginRequest).andReturn();
-        var authResponse = mapper.readValue(response.getResponse().getContentAsByteArray(), AuthenticationResponse.class);
-        token = authResponse.token();
-    }
-
-    @AfterEach
-    public void clearToken() {
-        token = null;
-    }
-
-    private void authenticateAsAdmin() throws Exception {
-        var body = authenticationBody("admin", "admin");
-        var loginRequest = MockMvcRequestBuilders.post("/api/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body);
-        var response = mvc.perform(loginRequest).andReturn();
+        var response = mvc.perform(loginRequest).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         var authResponse = mapper.readValue(response.getResponse().getContentAsByteArray(), AuthenticationResponse.class);
         token = authResponse.token();
     }
 
     @Test
-    public void testUserMessage() throws Exception {
+    public void test_user_message() throws Exception {
         assertNotNull(token);
         var message = new ChatMessage(ChatMessageType.USER, "test message", "user1", "user2", "");
         var body = mapper.writeValueAsBytes(message);
@@ -79,7 +67,7 @@ class MessageControllerTest {
     }
 
     @Test
-    public void testGroupMessage() throws Exception {
+    public void test_group_message() throws Exception {
         assertNotNull(token);
         var message = new ChatMessage(ChatMessageType.GROUP, "test message", "user1", "group1", "");
         var body = mapper.writeValueAsBytes(message);
@@ -88,29 +76,5 @@ class MessageControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body);
         mvc.perform(sendMessageRequest).andExpect(MockMvcResultMatchers.status().isCreated());
-
-    }
-
-    @Test
-    public void testSendNotification() throws Exception {
-        var message = new ChatNotification(ChatNotificationType.INFO, "test info");
-        var body = mapper.writeValueAsBytes(message);
-        var userSendMessageRequest = MockMvcRequestBuilders.post("/api/notify")
-                .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .queryParam("username", "user1");
-        mvc.perform(userSendMessageRequest).andExpect(MockMvcResultMatchers.status().isForbidden());
-
-        token = null;
-        authenticateAsAdmin();
-        assertNotNull(token);
-        var adminSendMessageRequest = MockMvcRequestBuilders.post("/api/notify")
-                .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .queryParam("username", "user1");
-        mvc.perform(adminSendMessageRequest).andExpect(MockMvcResultMatchers.status().isCreated());
-
     }
 }

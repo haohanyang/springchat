@@ -3,10 +3,15 @@ package haohanyang.springchat.server.services;
 
 import haohanyang.springchat.common.ChatNotification;
 import haohanyang.springchat.common.ChatNotificationType;
+import haohanyang.springchat.server.models.Membership;
+import haohanyang.springchat.server.repositories.GroupRepository;
+import haohanyang.springchat.server.repositories.MembershipRepository;
+import haohanyang.springchat.server.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,24 +19,27 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 @Service
 public class UserGroupService {
 
     Logger logger = LoggerFactory.getLogger(UserGroupService.class);
 
-    private final Map<String, Set<String>> userGroups;
-    private final Map<String, Set<String>> groupMembers;
+    private final Map<String, Set<String>> userGroups = new HashMap<>();
+    private final Map<String, Set<String>> groupMembers = new HashMap<>();
     private final Lock mutex = new ReentrantLock();
 
-    @Autowired
-    public UserGroupService() {
-        userGroups = new HashMap<>();
-        groupMembers = new HashMap<>();
+    private final MembershipRepository membershipRepository;
+    private final UserRepository userRepository;
+    private final GroupRepository groupRepository;
 
-        groupMembers.put("group1", new HashSet<>());
-        groupMembers.put("group2", new HashSet<>());
+    public UserGroupService(MembershipRepository membershipRepository, UserRepository userRepository, GroupRepository groupRepository) {
+        this.membershipRepository = membershipRepository;
+        this.userRepository = userRepository;
+        this.groupRepository = groupRepository;
     }
+
 
     public Map<String, Set<String>> getUserGroups() {
         try {
@@ -109,47 +117,59 @@ public class UserGroupService {
         }
     }
 
-    public ChatNotification addMember(String username, String groupId) {
-        ChatNotification notification = null;
-        try {
-            mutex.lock();
-            var members = groupMembers.get(groupId);
-            if (members != null) {
-                if (!members.add(username)) {
-                    logger.warn("Add u/{} to g/{}:{}", username, groupId, "User is already in the group");
-                    notification = new ChatNotification(ChatNotificationType.WARNING, "You are already in g/" + groupId);
-                }
-            } else {
-                // Error:Group doesn't exist
-                logger.error("Add u/{} to g/{}:{}", username, groupId, "Group doesn't exist");
-                notification = new ChatNotification(ChatNotificationType.ERROR, "g/" + groupId + " doesn't exist");
-                return notification;
-            }
-
-            var groups = userGroups.get(username);
-            if (groups != null) {
-                if (!groups.add(groupId)) {
-                    logger.warn("Add u/{} to g/{}:{}", username, groupId, "User is already in the group");
-                    notification = new ChatNotification(ChatNotificationType.WARNING, "You are already in g/" + groupId);
-                }
-            } else {
-                // Error:User doesn't exist
-                logger.error("Add u/{} to g/{}:{}", username, groupId, "User doesn't exist");
-                notification = new ChatNotification(ChatNotificationType.ERROR, "User doesn't exist");
-                return notification;
-            }
-        } catch (Exception e) {
-            logger.error("Add u/{} to g/{}:{}", username, groupId, e.getMessage());
-            notification = new ChatNotification(ChatNotificationType.ERROR, e.getMessage());
-            return notification;
-        } finally {
-            mutex.unlock();
-        }
-
-        if (notification != null) {
-            return notification;
-        }
-        return new ChatNotification(ChatNotificationType.SUCCESS, "u/" + username + " joined the group");
+    @Transactional
+    public void addMember(String username, String groupName) throws Exception {
+        var user = userRepository.findByUsername(username);
+        var group = groupRepository.findByGroupName(groupName);
+        if (user.isEmpty())
+            throw new IllegalArgumentException("User " + username + " doesn't exist");
+        if (group.isEmpty())
+            throw new IllegalArgumentException("Group " + groupName + " doesn't exist");
+        var joinedGroups = user.get().getMemberships().stream().map(e -> e.getGroup().getGroupName()).collect(Collectors.toSet());
+        if (joinedGroups.contains(groupName))
+            throw new IllegalArgumentException("User " + username + " is already in the group " + groupName);
+        var membership = new Membership(user.get(), group.get());
+        membershipRepository.save(membership);
+//        ChatNotification notification = null;
+//        try {
+//            mutex.lock();
+//            var members = groupMembers.get(groupId);
+//            if (members != null) {
+//                if (!members.add(username)) {
+//                    logger.warn("Add u/{} to g/{}:{}", username, groupId, "User is already in the group");
+//                    notification = new ChatNotification(ChatNotificationType.WARNING, "You are already in g/" + groupId);
+//                }
+//            } else {
+//                // Error:Group doesn't exist
+//                logger.error("Add u/{} to g/{}:{}", username, groupId, "Group doesn't exist");
+//                notification = new ChatNotification(ChatNotificationType.ERROR, "g/" + groupId + " doesn't exist");
+//                return notification;
+//            }
+//
+//            var groups = userGroups.get(username);
+//            if (groups != null) {
+//                if (!groups.add(groupId)) {
+//                    logger.warn("Add u/{} to g/{}:{}", username, groupId, "User is already in the group");
+//                    notification = new ChatNotification(ChatNotificationType.WARNING, "You are already in g/" + groupId);
+//                }
+//            } else {
+//                // Error:User doesn't exist
+//                logger.error("Add u/{} to g/{}:{}", username, groupId, "User doesn't exist");
+//                notification = new ChatNotification(ChatNotificationType.ERROR, "User doesn't exist");
+//                return notification;
+//            }
+//        } catch (Exception e) {
+//            logger.error("Add u/{} to g/{}:{}", username, groupId, e.getMessage());
+//            notification = new ChatNotification(ChatNotificationType.ERROR, e.getMessage());
+//            return notification;
+//        } finally {
+//            mutex.unlock();
+//        }
+//
+//        if (notification != null) {
+//            return notification;
+//        }
+//        return new ChatNotification(ChatNotificationType.SUCCESS, "u/" + username + " joined the group");
     }
 
     public ChatNotification removeMember(String username, String groupId) {
