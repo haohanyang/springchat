@@ -39,4 +39,4 @@ out/
 ### macOS ###
 .DS_Store
 
-env.sh
+.env
