@@ -10,7 +10,10 @@ permissions:
   contents: read
 
 env:
-  MSSQL_PASSWORD: My_1Strong_password
+  DEV_DATASOURCE_SERVER: localhost
+  DEV_DATASOURCE_URL: jdbc:sqlserver://localhost:1433;database=tempdb;trustServerCertificate=true
+  DEV_DATASOURCE_USERNAME: sa
+  DEV_DATASOURCE_PASSWORD: My_1Strong_password
   SECRET_KEY: 50w3xPXb3LUYbDaKJarItPcNk3EIF1gz
 
 jobs:
@@ -21,7 +24,7 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
           ACCEPT_EULA: "Y"
-          MSSQL_SA_PASSWORD: "$MSSQL_PASSWORD"
+          MSSQL_SA_PASSWORD: "$DEV_DATASOURCE_PASSWORD"
         ports:
           - 1433:1433
     steps:
@@ -31,16 +34,17 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Setup Gradle
+      - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
       - name: Build server
         run: ./gradlew :server:build -x test
       - name: Build client
         run: ./gradlew :client:build -x test
+      - name: Init database
+        run: pip install pymssql && python scripts/init_db.py
       - name: Test server
-        env:
-          DEV_DATASOURCE_URL: "jdbc:sqlserver://localhost:1433;trustServerCertificate=true"
-          DEV_DATASOURCE_USERNAME: "sa"
-          DEV_DATASOURCE_PASSWORD: "$MSSQL_PASSWORD"
-          SECRET_KEY: "$SECRET_KEY"
-        run: ./gradlew :server:test
+        run: ./gradlew :server:test -i
