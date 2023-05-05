@@ -8,7 +8,7 @@ database = "tempdb"
 
 schema = "app"
 
-conn = pymssql.connect(server, username, password, database)
+conn = pymssql.connect("f", "Fs", "f", database)
 cursor = conn.cursor(as_dict=True)
 
 cursor.execute("CREATE SCHEMA " + schema)

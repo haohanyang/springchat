@@ -1,4 +1,2 @@
 rootProject.name = 'springchat'
-include 'common', 'server', 'client'
-include 'database'
 
