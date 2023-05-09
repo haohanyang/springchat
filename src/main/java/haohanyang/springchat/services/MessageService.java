@@ -3,8 +3,8 @@ package haohanyang.springchat.services;
 
 import haohanyang.springchat.dtos.MessageDTO;
 import haohanyang.springchat.dtos.NotificationDTO;
-import haohanyang.springchat.models.GroupMessage;
-import haohanyang.springchat.models.UserMessage;
+import haohanyang.springchat.models.GroupMessageDao;
+import haohanyang.springchat.models.UserMessageDao;
 import haohanyang.springchat.repositories.GroupMessageRepository;
 import haohanyang.springchat.repositories.GroupRepository;
 import haohanyang.springchat.repositories.UserMessageRepository;
@@ -48,7 +48,7 @@ public class MessageService {
         if (receiver.isEmpty())
             throw new IllegalArgumentException("User " + message.receiver() + " doesn't exist");
         simpMessagingTemplate.convertAndSend("/receive/user/" + message.receiver(), message);
-        userMessageRepository.save(new UserMessage(sender.get(), receiver.get(), message.content()));
+        userMessageRepository.save(new UserMessageDao(sender.get(), receiver.get(), message.content()));
     }
 
     @Transactional
@@ -62,16 +62,16 @@ public class MessageService {
         if (!sender.get().isMemberOf(group.get()))
             throw new IllegalArgumentException("User " + message.sender() + " is not in group " + message.receiver());
         simpMessagingTemplate.convertAndSend("/receive/group/" + message.receiver(), message);
-        groupMessageRepository.save(new GroupMessage(sender.get(), group.get(), message.content()));
+        groupMessageRepository.save(new GroupMessageDao(sender.get(), group.get(), message.content()));
     }
 
     @Transactional(readOnly = true)
-    public Set<UserMessage> getUserMessagesSent(String username) {
+    public Set<UserMessageDao> getUserMessagesSent(String username) {
         return userMessageRepository.findUserMessageBySenderUsername(username);
     }
 
     @Transactional(readOnly = true)
-    public Set<UserMessage> getUserMessagesReceived(String username) {
+    public Set<UserMessageDao> getUserMessagesReceived(String username) {
         return userMessageRepository.findUserMessageByReceiverUsername(username);
     }
 

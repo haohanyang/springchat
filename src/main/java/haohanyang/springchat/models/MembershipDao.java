@@ -6,28 +6,28 @@ import java.util.Date;
 
 @Entity
 @Table(schema = "app", name = "membership")
-public class Membership {
+public class MembershipDao {
     @EmbeddedId
     private MembershipId id;
 
     @ManyToOne
     @MapsId("member_id")
     @JoinColumn(name = "member_id")
-    private User member;
+    private UserDao member;
 
     @ManyToOne
     @MapsId("group_id")
     @JoinColumn(name = "group_id")
-    private Group group;
+    private GroupDao group;
 
     @Column(name = "joined_time")
     @Temporal(TemporalType.TIME)
     private Date joinedTime = new Date();
 
-    public Membership() {
+    public MembershipDao() {
     }
 
-    public Membership(User member, Group group) {
+    public MembershipDao(UserDao member, GroupDao group) {
         id = new MembershipId(member.getId(), group.getId());
         this.member = member;
         this.group = group;
@@ -37,11 +37,11 @@ public class Membership {
         return id;
     }
 
-    public User getMember() {
+    public UserDao getMember() {
         return member;
     }
 
-    public Group getGroup() {
+    public GroupDao getGroup() {
         return group;
     }
 
@@ -49,11 +49,11 @@ public class Membership {
         return joinedTime;
     }
 
-    public void setMember(User member) {
+    public void setMember(UserDao member) {
         this.member = member;
     }
 
-    public void setGroup(Group group) {
+    public void setGroup(GroupDao group) {
         this.group = group;
     }
 
@@ -67,8 +67,8 @@ public class Membership {
             return true;
         if (obj == null)
             return false;
-        if (obj instanceof Membership) {
-            return ((Membership) obj).getId().equals(this.id);
+        if (obj instanceof MembershipDao) {
+            return ((MembershipDao) obj).getId().equals(this.id);
         }
         return false;
     }

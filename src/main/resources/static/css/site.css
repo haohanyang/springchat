@@ -1,0 +1,55 @@
+.home-heading {
+    padding-top: 100px;
+    padding-bottom: 20px;
+}
+
+.form-auth {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px;
+    margin: 0 auto;
+    margin-top: 100px;
+}
+
+.form-auth .form-control {
+    position: relative;
+    box-sizing: border-box;
+    height: auto;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.form-auth .form-control:focus {
+    z-index: 2;
+}
+
+.form-auth input[type="email"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.form-auth input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.chat-contact-list {
+    position: relative;
+    height: 570px;
+    overflow: scroll;
+    scrollbar-width: thin;
+}
+
+.chat-message-box {
+    position: relative;
+    height: 500px;
+    overflow: scroll;
+    scrollbar-width: thin;
+}
+
+.chat-contact-search,
+.chat-contact-status {
+    height: 30px;
+}

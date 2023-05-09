@@ -1,7 +1,6 @@
 package haohanyang.springchat.models;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.Type;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,7 +8,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(schema = "app", name = "\"user\"")
-public class User {
+public class UserDao {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +20,9 @@ public class User {
     @Column(name = "password", nullable = false, length = 32)
     private String password;
 
+    @Column(name = "email", nullable = false, unique = true, length = 50)
+    private String email;
+
     @Column(name = "first_name", nullable = false, length = 20)
     private String firstName;
 
@@ -28,23 +30,26 @@ public class User {
     private String lastName;
 
     @OneToMany(mappedBy = "member")
-    private Set<Membership> memberships = new HashSet<>();
+    private Set<MembershipDao> memberships = new HashSet<>();
 
     @OneToMany(mappedBy = "sender")
-    private Set<UserMessage> userMessagesSent;
+    private Set<UserMessageDao> userMessagesSent;
 
     @OneToMany(mappedBy = "receiver")
-    private Set<UserMessage> userMessagesReceived;
+    private Set<UserMessageDao> userMessagesReceived;
 
     @OneToMany(mappedBy = "sender")
-    private Set<GroupMessage> groupMessagesSent;
+    private Set<GroupMessageDao> groupMessagesSent;
 
-    public User() {
+    public UserDao() {
     }
 
-    public User(String username, String password) {
+    public UserDao(String username, String password, String email, String firstName, String lastName) {
         this.username = username;
         this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
     }
 
     public int hashCode() {
@@ -71,20 +76,24 @@ public class User {
         return lastName;
     }
 
-    public Set<Membership> getMemberships() {
+    public Set<MembershipDao> getMemberships() {
         return memberships;
     }
 
-    public Set<UserMessage> getUserMessagesSent() {
+    public Set<UserMessageDao> getUserMessagesSent() {
         return userMessagesSent;
     }
 
-    public Set<UserMessage> getUserMessagesReceived() {
+    public Set<UserMessageDao> getUserMessagesReceived() {
         return userMessagesReceived;
     }
 
-    public Set<GroupMessage> getGroupMessagesSent() {
+    public Set<GroupMessageDao> getGroupMessagesSent() {
         return groupMessagesSent;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     public void setUsername(String username) {
@@ -95,6 +104,10 @@ public class User {
         this.password = password;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
@@ -103,24 +116,25 @@ public class User {
         this.lastName = lastName;
     }
 
-    public void setMemberships(Set<Membership> memberships) {
+    public void setMemberships(Set<MembershipDao> memberships) {
         this.memberships = memberships;
     }
 
-    public void setGroupMessagesSent(Set<GroupMessage> groupMessagesSent) {
+    public void setGroupMessagesSent(Set<GroupMessageDao> groupMessagesSent) {
         this.groupMessagesSent = groupMessagesSent;
     }
 
-    public void setUserMessagesReceived(Set<UserMessage> userMessagesReceived) {
+    public void setUserMessagesReceived(Set<UserMessageDao> userMessagesReceived) {
         this.userMessagesReceived = userMessagesReceived;
     }
 
-    public void setUserMessagesSent(Set<UserMessage> userMessagesSent) {
+    public void setUserMessagesSent(Set<UserMessageDao> userMessagesSent) {
         this.userMessagesSent = userMessagesSent;
     }
 
-    public boolean isMemberOf(Group group) {
-        return memberships.stream().map(Membership::getGroup).collect(Collectors.toSet()).contains(group);
+
+    public boolean isMemberOf(GroupDao group) {
+        return memberships.stream().map(MembershipDao::getGroup).collect(Collectors.toSet()).contains(group);
     }
 
     public boolean isMemberOf(String groupName) {

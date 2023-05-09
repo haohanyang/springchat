@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(schema = "app", name = "\"group\"")
-public class Group {
+public class GroupDao {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,15 +18,15 @@ public class Group {
     private String groupName;
 
     @OneToMany(mappedBy = "group")
-    private Set<Membership> memberships = new HashSet<>();
+    private Set<MembershipDao> memberships = new HashSet<>();
 
     @OneToMany(mappedBy = "group")
-    private Set<GroupMessage> messages;
+    private Set<GroupMessageDao> messages;
 
-    public Group() {
+    public GroupDao() {
     }
 
-    public Group(String groupName) {
+    public GroupDao(String groupName) {
         this.groupName = groupName;
     }
 
@@ -43,11 +43,11 @@ public class Group {
         return groupName;
     }
 
-    public Set<Membership> getMemberships() {
+    public Set<MembershipDao> getMemberships() {
         return memberships;
     }
 
-    public Set<GroupMessage> getMessages() {
+    public Set<GroupMessageDao> getMessages() {
         return messages;
     }
 
@@ -55,16 +55,16 @@ public class Group {
         this.groupName = groupName;
     }
 
-    public void setMemberships(Set<Membership> memberships) {
+    public void setMemberships(Set<MembershipDao> memberships) {
         this.memberships = memberships;
     }
 
-    public void setMessages(Set<GroupMessage> messages) {
+    public void setMessages(Set<GroupMessageDao> messages) {
         this.messages = messages;
     }
 
-    public boolean hasMember(User user) {
-        return memberships.stream().map(Membership::getMember).collect(Collectors.toSet()).contains(user);
+    public boolean hasMember(UserDao user) {
+        return memberships.stream().map(MembershipDao::getMember).collect(Collectors.toSet()).contains(user);
     }
 
     public boolean hasMember(String username) {

@@ -27,16 +27,16 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http.csrf().disable();
         http.authorizeHttpRequests(requests -> requests
-                .requestMatchers("/", "/g", "/register", "/api/register", "/api/login", "/api/verify", "/chat/**")
+                .requestMatchers("/", "/css/**", "/js/**", "/login", "/register", "/api/register", "/api/login",
+                        "/api/verify", "/chat/**")
                 .permitAll()
                 .requestMatchers("/api/notify").hasRole("ADMIN")
                 .anyRequest().authenticated());
-        http.formLogin(
-                form -> form.loginPage("/login").permitAll().defaultSuccessUrl("/", true));
-        http.logout().permitAll();
-        http.headers().frameOptions().disable();
+        http.formLogin(form -> form.loginPage("/login").permitAll());
+        http.logout().logoutUrl("/logout").permitAll().invalidateHttpSession(true).deleteCookies("JSESSIONID");
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

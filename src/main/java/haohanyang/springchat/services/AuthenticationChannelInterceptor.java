@@ -2,14 +2,12 @@ package haohanyang.springchat.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
 
@@ -23,7 +21,8 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
     private final UserGroupService userGroupService;
     private final AuthenticationTokenService authenticationTokenService;
 
-    public AuthenticationChannelInterceptor(UserGroupService userGroupService, AuthenticationTokenService authenticationTokenService) {
+    public AuthenticationChannelInterceptor(UserGroupService userGroupService,
+            AuthenticationTokenService authenticationTokenService) {
         this.authenticationTokenService = authenticationTokenService;
         this.userGroupService = userGroupService;
     }

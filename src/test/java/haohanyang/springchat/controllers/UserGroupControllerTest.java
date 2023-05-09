@@ -3,7 +3,7 @@ package haohanyang.springchat.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import haohanyang.springchat.SpringChatApplication;
 import haohanyang.springchat.dtos.AuthenticationRequest;
-import haohanyang.springchat.dtos.AuthenticationResponse;
+import haohanyang.springchat.dtos.LoginResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -46,7 +46,7 @@ class UserGroupControllerTest {
         var response = mvc.perform(loginRequest).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         response.getResponse();
         var authResponse = mapper.readValue(response.getResponse().getContentAsByteArray(),
-                AuthenticationResponse.class);
+                LoginResponse.class);
         token = authResponse.token();
     }
 
@@ -59,7 +59,7 @@ class UserGroupControllerTest {
                 .content(body);
         var response = mvc.perform(loginRequest).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         var authResponse = mapper.readValue(response.getResponse().getContentAsByteArray(),
-                AuthenticationResponse.class);
+                LoginResponse.class);
         var token = authResponse.token();
 
         var req = MockMvcRequestBuilders.put("/api/join")

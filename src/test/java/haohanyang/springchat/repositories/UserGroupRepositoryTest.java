@@ -1,8 +1,8 @@
 package haohanyang.springchat.repositories;
 
-import haohanyang.springchat.models.Group;
-import haohanyang.springchat.models.Membership;
-import haohanyang.springchat.models.User;
+import haohanyang.springchat.models.GroupDao;
+import haohanyang.springchat.models.MembershipDao;
+import haohanyang.springchat.models.UserDao;
 
 import org.junit.jupiter.api.Test;
 
@@ -81,7 +81,7 @@ class UserGroupRepositoryTest {
     @Transactional
     public void test_create_new_user() {
         var username = "new_user";
-        var user = new User(username, "my-password");
+        var user = new UserDao(username, "my-password");
         userRepository.save(user);
 
         testEntityManager.getEntityManager().getTransaction().commit();
@@ -94,7 +94,7 @@ class UserGroupRepositoryTest {
     @Transactional
     public void test_create_new_group() {
         var groupName = "new_group";
-        var group = new Group(groupName);
+        var group = new GroupDao(groupName);
         groupRepository.save(group);
 
         testEntityManager.getEntityManager().getTransaction().commit();
@@ -114,7 +114,7 @@ class UserGroupRepositoryTest {
         assertTrue(user.isPresent());
         assertTrue(group.isPresent());
 
-        var membership = new Membership(user.get(), group.get());
+        var membership = new MembershipDao(user.get(), group.get());
         membershipRepository.save(membership);
 
         testEntityManager.getEntityManager().getTransaction().commit();

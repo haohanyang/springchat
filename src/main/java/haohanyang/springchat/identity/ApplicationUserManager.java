@@ -1,10 +1,9 @@
-package haohanyang.springchat.services;
+package haohanyang.springchat.identity;
 
-import haohanyang.springchat.identity.ApplicationUserPrincipal;
-import haohanyang.springchat.models.User;
+import haohanyang.springchat.models.UserDao;
 import haohanyang.springchat.repositories.UserRepository;
-
 import haohanyang.springchat.services.AuthenticationService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,17 +34,25 @@ public class ApplicationUserManager implements UserDetailsManager {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         var user = userRepository.findByUsername(username);
         if (user.isEmpty())
-            throw new UsernameNotFoundException("Username " + username + " not found");
-        return new ApplicationUserPrincipal(user.get());
+            throw new UsernameNotFoundException("Username " + username + " doesn't exist");
+        return new ApplicationUserDetails(user.get());
     }
 
-    @Override
     @Transactional
     public void createUser(UserDetails user) {
         var username = user.getUsername();
         var password = user.getPassword();
-        Assert.isTrue(userRepository.findByUsername(username).isEmpty(), "Username " + username + " already exists");
-        userRepository.save(new User(username, password));
+
+        if (user instanceof ApplicationUserDetails applicationUserDetails) {
+            var firstName = applicationUserDetails.getFirstName();
+            var lastName = applicationUserDetails.getLastName();
+            var email = applicationUserDetails.getEmail();
+            Assert.isTrue(userRepository.findByUsername(username).isEmpty(), "Username " + username + " already exists");
+            Assert.isTrue(userRepository.findByEmail(email).isEmpty(), "Email " + email + " already exists");
+            userRepository.save(new UserDao(username, password, email, firstName, lastName));
+        } else {
+            throw new IllegalArgumentException("The argument user must be an instance of ApplicationUserDetails");
+        }
     }
 
     @Override
@@ -62,33 +68,7 @@ public class ApplicationUserManager implements UserDetailsManager {
     }
 
     @Override
-    // @Transactional
     public void changePassword(String oldPassword, String newPassword) {
-        // var currentUser =
-        // securityContextHolderStrategy.getContext().getAuthentication();
-        // if (currentUser == null)
-        // throw new AccessDeniedException(
-        // "Can't change password as no Authentication object found in context " + "for
-        // current user.");
-        // String username = currentUser.getName();
-        // logger.debug("Changing password for user {}", username);
-        //
-        // // If an authentication manager has been set, re-authenticate the user with
-        // the
-        // // supplied password.
-        // if (authenticationManager != null) {
-        // logger.debug("Re-authenticating user {} for password change request.",
-        // username);
-        // authenticationManager
-        // .authenticate(UsernamePasswordAuthenticationToken.unauthenticated(username,
-        // oldPassword));
-        // } else {
-        // this.logger.debug("No authentication manager set. Password won't be
-        // re-checked.");
-        // }
-        // var user = userRepository.findByUsername(username);
-        // Assert.state(user.isPresent(), "Current user doesn't exist in database.");
-        // user.get().setPassword(newPassword);
     }
 
     @Override

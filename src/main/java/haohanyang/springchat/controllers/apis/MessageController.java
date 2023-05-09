@@ -1,4 +1,4 @@
-package haohanyang.springchat.controllers;
+package haohanyang.springchat.controllers.apis;
 
 import haohanyang.springchat.dtos.MessageDTO;
 import haohanyang.springchat.dtos.MessageType;

@@ -1,18 +1,17 @@
 package haohanyang.springchat.identity;
 
-import haohanyang.springchat.models.User;
+import haohanyang.springchat.models.UserDao;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Set;
 
-public class ApplicationUserPrincipal implements UserDetails {
-    private final User user;
+public class ApplicationUserDetails implements UserDetails {
+    private final UserDao user;
 
-    public ApplicationUserPrincipal(User user) {
+    public ApplicationUserDetails(UserDao user) {
         this.user = user;
     }
 
@@ -23,13 +22,19 @@ public class ApplicationUserPrincipal implements UserDetails {
 
     @Override
     public String getPassword() {
-        return new String(user.getPassword());
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
         return user.getUsername();
     }
+
+    public String getEmail() {return user.getEmail();}
+
+    public String getFirstName() {return user.getFirstName();}
+
+    public String getLastName() {return user.getLastName();}
 
     @Override
     public boolean isAccountNonExpired() {

@@ -2,7 +2,7 @@ package haohanyang.springchat.services;
 
 import haohanyang.springchat.dtos.NotificationDTO;
 import haohanyang.springchat.dtos.NotificationType;
-import haohanyang.springchat.models.Membership;
+import haohanyang.springchat.models.MembershipDao;
 import haohanyang.springchat.repositories.GroupRepository;
 import haohanyang.springchat.repositories.MembershipRepository;
 import haohanyang.springchat.repositories.UserRepository;
@@ -127,7 +127,7 @@ public class UserGroupService {
                 .collect(Collectors.toSet());
         if (joinedGroups.contains(groupName))
             throw new IllegalArgumentException("User " + username + " is already in the group " + groupName);
-        var membership = new Membership(user.get(), group.get());
+        var membership = new MembershipDao(user.get(), group.get());
         membershipRepository.save(membership);
         // ChatNotification notification = null;
         // try {

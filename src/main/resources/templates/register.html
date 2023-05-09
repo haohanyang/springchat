@@ -1,27 +1,88 @@
-<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
-<head>
-    <title>Login</title>
-</head>
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{layout :: head (title = 'Login')}"></head>
+
 <body>
-<div th:if="${register_error} != null">
-    <p th:text="${register_error}"></p>
-</div>
-<form th:action="@{/register}" th:object="${registration}" method="post">
-    <div>
-        <span th:if="${#fields.hasErrors('username')}">Invalid username</span>
-        <label> Username:
-            <input type="text" name="username" th:field="*{username}"/>
-        </label>
-    </div>
-    <div>
-        <span th:if="${#fields.hasErrors('password')}">Invalid password</span>
-        <label> Password:
-            <input type="password" name="password" th:field="*{password}"/>
-        </label>
-    </div>
-    <div><input type="submit" value="Register"/></div>
-</form>
-<div><p><a th:href="@{/}">Home</a></p></div>
+    <header th:replace="~{layout :: header}"></header>
+    <main role="main" class="container">
+        <form class="form-auth border rounded" th:action="@{/register}" th:object="${form}" method="post">
+            <div class="text-center">
+                <img class="mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt=""
+                    width="72" height="72">
+            </div>
+
+            <h1 class="h3 mb-3 font-weight-normal text-center">Register</h1>
+
+            <div class="container row justify-content-between">
+                <div class="col-12 col-sm-6">
+                    <label for="register-first-name" class="form-label">First name</label>
+                    <input th:field="*{firstName}" type="text"
+                        th:class="${#fields.hasErrors('firstName')} ? 'form-control is-invalid' : 'form-control'"
+                        id="register-first-name" aria-describedby="register-first-name-feedback" required>
+                    <span id="register-first-name-input-feedback" class="invalid-feedback"
+                        th:if="${#fields.hasErrors('firstName')}" th:text="${#fields.errors('firstName')[0]}"></span>
+                </div>
+
+                <div class="col-12 col-sm-6 pr-0">
+                    <label for="register-last-name" class="form-label">Last name</label>
+                    <input th:field="*{lastName}" type="text"
+                        th:class="${#fields.hasErrors('lastName')} ? 'form-control is-invalid' : 'form-control'"
+                        id="register-last-name" aria-describedby="register-last-name-feedback" required>
+                    <span id="register-last-name-input-feedback" class="invalid-feedback"
+                        th:if="${#fields.hasErrors('lastName')}" th:text="${#fields.errors('lastName')[0]}"></span>
+                </div>
+            </div>
+
+            <div class="container">
+                <label for="register-email" class="form-label">Email</label>
+                <input th:field="*{email}" type="email"
+                    th:class="${#fields.hasErrors('email')} ? 'form-control is-invalid' : 'form-control'"
+                    id="register-email" aria-describedby="register-email-feedback" required>
+                <span id="register-email-input-feedback" class="invalid-feedback" th:if="${#fields.hasErrors('email')}"
+                    th:text="${#fields.errors('email')[0]}"></span>
+            </div>
+
+            <div class="container">
+                <label for="register-username-input" class="form-label">Username</label>
+                <input th:field="*{username}" type="text"
+                    th:class="${#fields.hasErrors('username')} ? 'form-control is-invalid' : 'form-control'"
+                    id="register-username-input" aria-describedby="register-username-feedback" required>
+                <span id="register-username-input-feedback" class="invalid-feedback"
+                    th:if="${#fields.errors('username').size() == 1}" th:text="${#fields.errors('username')[0]}">
+                </span>
+            </div>
+
+            <div class="container">
+                <label for="register-password-input" class="form-label">Password</label>
+                <input th:field="*{password}" type="password"
+                    th:class="${#fields.hasErrors('password')} ? 'form-control is-invalid' : 'form-control'"
+                    id="register-password-input" aria-describedby="register-password-input-feedback" required>
+                <span id="register-password-input-feedback" class="invalid-feedback"
+                    th:if="${#fields.hasErrors('password')}" th:text="${#fields.errors('password')[0]}">
+                </span>
+
+            </div>
+
+            <div class="container">
+                Already have an account? <a th:href="@{/login}">Login</a>
+            </div>
+
+            <div class="container text-center pt-2 pb-2">
+                <input type="submit" class="btn btn-outline-primary" value="Register" />
+            </div>
+
+            <div class="container pt-2" th:if="${error} != null">
+                <div class="alert alert-danger" role="alert">
+                    <span th:text="${error}"></span>
+                </div>
+            </div>
+
+        </form>
+
+    </main>
+    <footer th:replace="~{layout::footer}"></footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

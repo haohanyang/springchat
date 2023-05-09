@@ -5,7 +5,7 @@ import haohanyang.springchat.SpringChatApplication;
 
 
 import haohanyang.springchat.dtos.AuthenticationRequest;
-import haohanyang.springchat.dtos.AuthenticationResponse;
+import haohanyang.springchat.dtos.LoginResponse;
 import haohanyang.springchat.dtos.MessageDTO;
 import haohanyang.springchat.dtos.MessageType;
 import org.junit.jupiter.api.*;
@@ -46,7 +46,7 @@ class MessageControllerTest {
                 .content(body);
         var response = mvc.perform(loginRequest).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         var authResponse = mapper.readValue(response.getResponse().getContentAsByteArray(),
-                AuthenticationResponse.class);
+                LoginResponse.class);
         token = authResponse.token();
     }
 

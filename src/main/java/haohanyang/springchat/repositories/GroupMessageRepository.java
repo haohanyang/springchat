@@ -1,8 +1,7 @@
 package haohanyang.springchat.repositories;
 
-import haohanyang.springchat.models.GroupMessage;
+import haohanyang.springchat.models.GroupMessageDao;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.CrudRepository;
 
-public interface GroupMessageRepository extends JpaRepository<GroupMessage, Integer> {
+public interface GroupMessageRepository extends JpaRepository<GroupMessageDao, Integer> {
 }

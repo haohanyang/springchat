@@ -1,7 +1,8 @@
 package haohanyang.springchat.services;
 
-import haohanyang.springchat.identity.ApplicationUserPrincipal;
-import haohanyang.springchat.models.User;
+import haohanyang.springchat.identity.ApplicationUserManager;
+import haohanyang.springchat.identity.ApplicationUserDetails;
+import haohanyang.springchat.models.UserDao;
 import haohanyang.springchat.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +40,9 @@ class ApplicationUserManagerTest {
     @Test
     @Transactional
     void test_create_user() {
-        userManager.createUser(new ApplicationUserPrincipal(new User("non_existing_user", "password")));
+        userManager.createUser(new ApplicationUserDetails(new UserDao("non_existing_user", "password")));
         assertThrows(IllegalArgumentException.class,
-                () -> userManager.createUser(new ApplicationUserPrincipal(new User("user1", "password"))));
+                () -> userManager.createUser(new ApplicationUserDetails(new UserDao("user1", "password"))));
     }
 
     @Test

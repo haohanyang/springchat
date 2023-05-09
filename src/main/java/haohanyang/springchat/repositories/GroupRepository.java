@@ -1,10 +1,10 @@
 package haohanyang.springchat.repositories;
 
-import haohanyang.springchat.models.Group;
+import haohanyang.springchat.models.GroupDao;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;
 
-public interface GroupRepository extends CrudRepository<Group, Integer> {
-    Optional<Group> findByGroupName(String groupName);
+public interface GroupRepository extends CrudRepository<GroupDao, Integer> {
+    Optional<GroupDao> findByGroupName(String groupName);
 }

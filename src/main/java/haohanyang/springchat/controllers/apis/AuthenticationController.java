@@ -1,16 +1,20 @@
-package haohanyang.springchat.controllers;
+package haohanyang.springchat.controllers.apis;
 
-import haohanyang.springchat.dtos.AuthenticationRequest;
-import haohanyang.springchat.dtos.AuthenticationResponse;
+import haohanyang.springchat.dtos.LoginForm;
+import haohanyang.springchat.dtos.LoginResponse;
+import haohanyang.springchat.dtos.RegistrationForm;
+import haohanyang.springchat.dtos.RegistrationRequest;
 import haohanyang.springchat.services.AuthenticationService;
 
 import haohanyang.springchat.services.AuthenticationTokenService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,12 +31,18 @@ public class AuthenticationController {
     }
 
     @PostMapping("/api/register")
-    public ResponseEntity<String> register(@RequestBody AuthenticationRequest form) {
+    public ResponseEntity<String> register(@Valid @RequestBody RegistrationForm form, BindingResult result) {
         try {
-            authenticationService.register(form.username(), form.password());
+            if(result.hasErrors()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid form");
+            }
+            authenticationService.register(form);
             return new ResponseEntity<>("ok", HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("u/" + form.username() + " already exists");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unknown error occurred when user {} tried to register: {}", form.getUsername(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unknown error occurred");
         }
     }
 
@@ -57,15 +67,20 @@ public class AuthenticationController {
     }
 
     @PostMapping("/api/login")
-    public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest form) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginForm form) {
         try {
-            authenticationService.login(form.username(), form.password());
-            var token = authenticationTokenService.generateToken(form.username());
-            var response = new AuthenticationResponse(form.username(), token, "ok");
+            authenticationService.login(form.getUsername(), form.getPassword());
+            var token = authenticationTokenService.generateToken(form.getUsername());
+            var response = new LoginResponse(form.getUsername(), token, "ok");
             return ResponseEntity.ok().body(response);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new LoginResponse(form.getUsername(), "", e.getMessage()));
+        }
+        catch (Exception e) {
+            logger.error("Unknown error occurred when user {} tried to log in: {}", form.getUsername(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new LoginResponse(form.getUsername(), "", "Unknown error occurred"));
         }
     }
 
