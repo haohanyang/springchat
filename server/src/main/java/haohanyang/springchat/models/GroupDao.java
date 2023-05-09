@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(schema = "app", name = "\"group\"")
+@Table(schema = "app", name = "group")
 public class GroupDao {
     @Id
     @Column(name = "id")

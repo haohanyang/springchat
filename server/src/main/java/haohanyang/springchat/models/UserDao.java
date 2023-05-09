@@ -1,23 +1,25 @@
 package haohanyang.springchat.models;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(schema = "app", name = "\"user\"")
+@Table(schema = "app", name = "user")
 public class UserDao {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
+    @GenericGenerator(name = "native", strategy = "native")
     private Integer id;
 
     @Column(name = "username", unique = true, nullable = false, length = 20)
     private String username;
 
-    @Column(name = "password", nullable = false, length = 32)
+    @Column(name = "password", nullable = false, columnDefinition = "char(32)")
     private String password;
 
     @Column(name = "email", nullable = false, unique = true, length = 50)
