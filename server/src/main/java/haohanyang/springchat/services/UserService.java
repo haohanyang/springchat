@@ -1,33 +1,49 @@
 package haohanyang.springchat.services;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import haohanyang.springchat.dtos.UserDTO;
-import haohanyang.springchat.repositories.GroupRepository;
+import haohanyang.springchat.dtos.GroupDto;
+import haohanyang.springchat.dtos.UserDto;
+import haohanyang.springchat.models.Group;
+import haohanyang.springchat.models.Membership;
+import haohanyang.springchat.models.User;
 import haohanyang.springchat.repositories.MembershipRepository;
 import haohanyang.springchat.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
 public class UserService {
-
-    private final Logger logger = LoggerFactory.getLogger(UserService.class);
-    private final MembershipRepository membershipRepository;
     private final UserRepository userRepository;
-    private final GroupRepository groupRepository;
+    private final MembershipRepository membershipRepository;
 
-    public UserService(MembershipRepository membershipRepository, UserRepository userRepository,
-            GroupRepository groupRepository) {
-        this.membershipRepository = membershipRepository;
+    @Autowired
+    public UserService(UserRepository userRepository, MembershipRepository membershipRepository) {
         this.userRepository = userRepository;
-        this.groupRepository = groupRepository;
+        this.membershipRepository = membershipRepository;
     }
 
-    public List<UserDTO> getAllUsers() {
-        return null;
+    @Transactional(readOnly = true)
+    public Set<UserDto> getAllUsers() {
+        return userRepository.findAll().stream().map(User::toDto).collect(Collectors.toSet());
     }
 
+    @Transactional(readOnly = true)
+    public UserDto getUser(String username) {
+        var user = userRepository.findByUsername(username);
+        if (user.isEmpty())
+            throw new IllegalArgumentException("User " + username + " doesn't exist");
+        return user.get().toDto();
+    }
+
+    @Transactional(readOnly = true)
+    public Set<GroupDto> getJoinedGroups(String username) {
+        var user = userRepository.findByUsername(username);
+        if (user.isEmpty())
+            throw new IllegalArgumentException("User " + username + " doesn't exist");
+        var memberships = membershipRepository.findByMember(user.get());
+        return memberships.stream().map(Membership::getGroup).map(Group::toDto).collect(Collectors.toSet());
+    }
 }

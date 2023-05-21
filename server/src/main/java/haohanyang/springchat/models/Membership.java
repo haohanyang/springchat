@@ -2,32 +2,32 @@ package haohanyang.springchat.models;
 
 import jakarta.persistence.*;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 @Entity
 @Table(schema = "app", name = "membership")
-public class MembershipDao {
+public class Membership {
+    private static final long serialVersionUID = 1L;
     @EmbeddedId
     private MembershipId id;
 
     @ManyToOne
     @MapsId("member_id")
     @JoinColumn(name = "member_id")
-    private UserDao member;
+    private User member;
 
     @ManyToOne
     @MapsId("group_id")
     @JoinColumn(name = "group_id")
-    private GroupDao group;
+    private Group group;
 
-    @Column(name = "joined_time")
-    @Temporal(TemporalType.TIME)
-    private Date joinedTime = new Date();
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 
-    public MembershipDao() {
+    public Membership() {
     }
 
-    public MembershipDao(UserDao member, GroupDao group) {
+    public Membership(User member, Group group) {
         id = new MembershipId(member.getId(), group.getId());
         this.member = member;
         this.group = group;
@@ -37,29 +37,26 @@ public class MembershipDao {
         return id;
     }
 
-    public UserDao getMember() {
+    public User getMember() {
         return member;
     }
 
-    public GroupDao getGroup() {
+    public Group getGroup() {
         return group;
     }
 
-    public Date getJoinedTime() {
-        return joinedTime;
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 
-    public void setMember(UserDao member) {
+    public void setMember(User member) {
         this.member = member;
     }
 
-    public void setGroup(GroupDao group) {
+    public void setGroup(Group group) {
         this.group = group;
     }
 
-    public void setJoinedTime(Date joinedTime) {
-        this.joinedTime = joinedTime;
-    }
 
     @Override
     public boolean equals(Object obj) {
@@ -67,8 +64,8 @@ public class MembershipDao {
             return true;
         if (obj == null)
             return false;
-        if (obj instanceof MembershipDao) {
-            return ((MembershipDao) obj).getId().equals(this.id);
+        if (obj instanceof Membership) {
+            return ((Membership) obj).getId().equals(this.id);
         }
         return false;
     }

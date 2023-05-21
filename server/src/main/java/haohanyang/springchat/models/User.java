@@ -1,28 +1,29 @@
 package haohanyang.springchat.models;
 
+import haohanyang.springchat.dtos.UserDto;
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
-@Table(schema = "app", name = "user")
-public class UserDao {
+@Table(schema = "app", name = "user", indexes = @Index(name = "username_index", columnList = "username", unique = true))
+public class User {
+
+    private static final long serialVersionUID = 1L;
+
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
-    @GenericGenerator(name = "native", strategy = "native")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "username", unique = true, nullable = false, length = 20)
     private String username;
 
-    @Column(name = "password", nullable = false, columnDefinition = "char(32)")
+    @Column(name = "password", nullable = false, columnDefinition = "char(60)")
     private String password;
 
-    @Column(name = "email", nullable = false, unique = true, length = 50)
+    @Column(name = "email", nullable = false, length = 50)
     private String email;
 
     @Column(name = "first_name", nullable = false, length = 20)
@@ -31,27 +32,34 @@ public class UserDao {
     @Column(name = "last_name", nullable = false, length = 20)
     private String lastName;
 
+    @Column(name = "avatar_url", length = 50)
+    private String avatarUrl;
+
     @OneToMany(mappedBy = "member")
-    private Set<MembershipDao> memberships = new HashSet<>();
+    private Set<Membership> memberships = new HashSet<>();
 
     @OneToMany(mappedBy = "sender")
-    private Set<UserMessageDao> userMessagesSent;
+    private Set<UserMessage> userMessagesSent;
 
     @OneToMany(mappedBy = "receiver")
-    private Set<UserMessageDao> userMessagesReceived;
+    private Set<UserMessage> userMessagesReceived;
 
     @OneToMany(mappedBy = "sender")
-    private Set<GroupMessageDao> groupMessagesSent;
+    private Set<GroupMessage> groupMessagesSent;
 
-    public UserDao() {
+    @OneToMany(mappedBy = "creator")
+    private Set<Group> createdGroups = new HashSet<>();
+
+    public User() {
     }
 
-    public UserDao(String username, String password, String email, String firstName, String lastName) {
+    public User(String username, String password, String email, String firstName, String lastName) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.avatarUrl = "https://api.dicebear.com/6.x/initials/svg?seed=" + firstName.charAt(0) + lastName.charAt(0);
     }
 
     public int hashCode() {
@@ -78,24 +86,32 @@ public class UserDao {
         return lastName;
     }
 
-    public Set<MembershipDao> getMemberships() {
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public Set<Membership> getMemberships() {
         return memberships;
     }
 
-    public Set<UserMessageDao> getUserMessagesSent() {
+    public Set<UserMessage> getUserMessagesSent() {
         return userMessagesSent;
     }
 
-    public Set<UserMessageDao> getUserMessagesReceived() {
+    public Set<UserMessage> getUserMessagesReceived() {
         return userMessagesReceived;
     }
 
-    public Set<GroupMessageDao> getGroupMessagesSent() {
+    public Set<GroupMessage> getGroupMessagesSent() {
         return groupMessagesSent;
     }
 
     public String getEmail() {
         return email;
+    }
+
+    public Set<Group> getCreatedGroups() {
+        return createdGroups;
     }
 
     public void setUsername(String username) {
@@ -118,30 +134,33 @@ public class UserDao {
         this.lastName = lastName;
     }
 
-    public void setMemberships(Set<MembershipDao> memberships) {
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public void setMemberships(Set<Membership> memberships) {
         this.memberships = memberships;
     }
 
-    public void setGroupMessagesSent(Set<GroupMessageDao> groupMessagesSent) {
+    public void setGroupMessagesSent(Set<GroupMessage> groupMessagesSent) {
         this.groupMessagesSent = groupMessagesSent;
     }
 
-    public void setUserMessagesReceived(Set<UserMessageDao> userMessagesReceived) {
+    public void setUserMessagesReceived(Set<UserMessage> userMessagesReceived) {
         this.userMessagesReceived = userMessagesReceived;
     }
 
-    public void setUserMessagesSent(Set<UserMessageDao> userMessagesSent) {
+    public void setUserMessagesSent(Set<UserMessage> userMessagesSent) {
         this.userMessagesSent = userMessagesSent;
     }
 
-
-    public boolean isMemberOf(GroupDao group) {
-        return memberships.stream().map(MembershipDao::getGroup).collect(Collectors.toSet()).contains(group);
+    public void setCreatedGroups(Set<Group> createdGroups) {
+        this.createdGroups = createdGroups;
     }
 
-    public boolean isMemberOf(String groupName) {
-        return memberships.stream().map(e -> e.getGroup().getGroupName()).collect(Collectors.toSet())
-                .contains(groupName);
+    public UserDto toDto() {
+        return new UserDto(this.id, this.username, this.firstName + " " + this.lastName, this.email, this.avatarUrl);
     }
+
 
 }

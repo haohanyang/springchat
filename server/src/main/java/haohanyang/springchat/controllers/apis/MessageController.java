@@ -1,6 +1,6 @@
 package haohanyang.springchat.controllers.apis;
 
-import haohanyang.springchat.dtos.MessageDTO;
+import haohanyang.springchat.dtos.UserMessageDto;
 import haohanyang.springchat.dtos.MessageType;
 import haohanyang.springchat.dtos.NotificationDTO;
 import haohanyang.springchat.services.MessageService;
@@ -29,25 +29,10 @@ public class MessageController {
         // this.messageService = new MessageService(simpMessagingTemplate);
     }
 
-    @PostMapping("/api/notify")
-    public ResponseEntity<String> sendNotification(@RequestBody NotificationDTO notification,
-            @RequestParam String username) {
-        messageService.sendUserNotification(username, notification);
-        return ResponseEntity.status(HttpStatus.CREATED).body("ok");
-    }
-
-    @PostMapping("/api/send")
-    public ResponseEntity<String> sendMessage(@RequestBody MessageDTO message) {
+    @PostMapping("/api/chats/user/message")
+    public ResponseEntity<String> sendUserMessage(@RequestBody UserMessageDto message) {
         try {
-            Thread.sleep(500);
-            var content = message.content();
-            var sender = message.sender();
-            var receiver = message.receiver();
-            if (message.messageType() == MessageType.USER) {
-                messageService.sendUserMessage(message);
-            } else {
-                messageService.sendGroupMessage(message);
-            }
+            messageService.sendUserMessage(message);
             return ResponseEntity.status(HttpStatus.CREATED).body("ok");
         } catch (Exception e) {
             logger.error(e.getMessage());

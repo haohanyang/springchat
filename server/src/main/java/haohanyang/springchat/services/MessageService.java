@@ -1,14 +1,11 @@
 package haohanyang.springchat.services;
 
 
-import haohanyang.springchat.dtos.MessageDTO;
+import haohanyang.springchat.dtos.UserMessageDto;
 import haohanyang.springchat.dtos.NotificationDTO;
-import haohanyang.springchat.models.GroupMessageDao;
-import haohanyang.springchat.models.UserMessageDao;
-import haohanyang.springchat.repositories.GroupMessageRepository;
-import haohanyang.springchat.repositories.GroupRepository;
-import haohanyang.springchat.repositories.UserMessageRepository;
-import haohanyang.springchat.repositories.UserRepository;
+import haohanyang.springchat.models.GroupMessage;
+import haohanyang.springchat.models.UserMessage;
+import haohanyang.springchat.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -21,57 +18,61 @@ public class MessageService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final GroupMessageRepository groupMessageRepository;
     private final UserMessageRepository userMessageRepository;
+    private final MembershipRepository membershipRepository;
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
 
     @Autowired
-    public MessageService(SimpMessagingTemplate simpMessagingTemplate, GroupMessageRepository groupMessageRepository,
-            UserMessageRepository userMessageRepository, UserRepository userRepository,
-            GroupRepository groupRepository) {
+    public MessageService(
+            SimpMessagingTemplate simpMessagingTemplate,
+            GroupMessageRepository groupMessageRepository,
+            UserMessageRepository userMessageRepository,
+            UserRepository userRepository,
+            GroupRepository groupRepository, MembershipRepository membershipRepository) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.groupMessageRepository = groupMessageRepository;
         this.userMessageRepository = userMessageRepository;
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
-    }
-
-    public void sendGroupNotification(String groupId, NotificationDTO notification) {
-        simpMessagingTemplate.convertAndSend("/notify/group/" + groupId, notification);
+        this.membershipRepository = membershipRepository;
     }
 
     @Transactional
-    public void sendUserMessage(MessageDTO message) throws Exception {
-        var sender = userRepository.findByUsername(message.sender());
-        var receiver = userRepository.findByUsername(message.receiver());
+    public void sendUserMessage(UserMessageDto message) throws Exception {
+        var sender = userRepository.findByUsername(message.sender().username());
         if (sender.isEmpty())
             throw new IllegalArgumentException("User " + message.sender() + " doesn't exist");
+        var receiver = userRepository.findByUsername(message.receiver().username());
         if (receiver.isEmpty())
             throw new IllegalArgumentException("User " + message.receiver() + " doesn't exist");
         simpMessagingTemplate.convertAndSend("/receive/user/" + message.receiver(), message);
-        userMessageRepository.save(new UserMessageDao(sender.get(), receiver.get(), message.content()));
+        userMessageRepository.save(new UserMessage(sender.get(), receiver.get(), message.content()));
     }
 
     @Transactional
-    public void sendGroupMessage(MessageDTO message) {
-        var sender = userRepository.findByUsername(message.sender());
-        var group = groupRepository.findByGroupName(message.receiver());
+    public void sendGroupMessage(UserMessageDto message) {
+        var sender = userRepository.findByUsername(message.sender().username());
         if (sender.isEmpty())
             throw new IllegalArgumentException("User " + message.sender() + " doesn't exist");
-        if (group.isEmpty())
+
+        var receiver = groupRepository.findById(message.receiver().id());
+        if (receiver.isEmpty())
             throw new IllegalArgumentException("Group " + message.receiver() + " doesn't exist");
-        if (!sender.get().isMemberOf(group.get()))
-            throw new IllegalArgumentException("User " + message.sender() + " is not in group " + message.receiver());
+        var membership = membershipRepository.findByMemberAndGroup(sender.get(), receiver.get());
+        if (membership.isEmpty()) {
+            throw new IllegalArgumentException("User " + message.sender().username() + " is not a member of group " + message.receiver().id());
+        }
         simpMessagingTemplate.convertAndSend("/receive/group/" + message.receiver(), message);
-        groupMessageRepository.save(new GroupMessageDao(sender.get(), group.get(), message.content()));
+        groupMessageRepository.save(new GroupMessage(sender.get(), receiver.get(), message.content()));
     }
 
     @Transactional(readOnly = true)
-    public Set<UserMessageDao> getUserMessagesSent(String username) {
+    public Set<UserMessage> getUserMessagesSent(String username) {
         return userMessageRepository.findUserMessageBySenderUsername(username);
     }
 
     @Transactional(readOnly = true)
-    public Set<UserMessageDao> getUserMessagesReceived(String username) {
+    public Set<UserMessage> getUserMessagesReceived(String username) {
         return userMessageRepository.findUserMessageByReceiverUsername(username);
     }
 
